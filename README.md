@@ -2,7 +2,7 @@
 
 A customizable sidebar extension for Chromium-based browsers like Google Chrome, Microsoft Edge, Brave, and Opera / Opera GX that allows you to dock your favorite web applications directly into the browser's side panel. 
 
-[Screenshot Placeholder: Insert screenshot of the sidebar open alongside a webpage]
+![OmniBar Demonstration](assets/demo.png)
 
 ## Features
 

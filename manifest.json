@@ -25,7 +25,7 @@
     }
   },
   "commands": {
-    "_execute_action": {
+    "toggle-sidebar": {
       "suggested_key": {
         "default": "Alt+Z",
         "windows": "Alt+Z"

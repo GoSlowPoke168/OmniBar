@@ -51,17 +51,12 @@ body {
   position: relative;
 }
 
-/*
- * KEY: use visibility:hidden instead of display:none so the element keeps
- * its flex-1 space — this is what keeps the icon strip pinned to the RIGHT
- * even when no app is open.
- */
 #content-panel.hidden {
   visibility: hidden;
   pointer-events: none;
 }
 
-/* iframe fills the panel */
+/* iframe  */
 #app-frame {
   flex: 1;
   border: none;
@@ -118,7 +113,7 @@ body {
   background: #444;
 }
 
-/* ── Loading spinner ── */
+/* Loading spinner */
 #load-spinner {
   position: absolute;
   inset: 0;
@@ -148,7 +143,7 @@ body {
   }
 }
 
-/* ── Panel header (prototype: controls at top) ── */
+/* Panel header  */
 #panel-header {
   display: flex;
   align-items: center;
@@ -276,7 +271,7 @@ body {
 }
 
 
-/* ── Icon strip (RIGHT — always) ── */
+/* Icon strip (RIGHT) */
 #icon-strip {
   width: var(--icon-size);
   background: var(--strip-bg);
@@ -478,7 +473,7 @@ body {
   animation: wiggle .45s ease-in-out infinite;
 }
 
-/* ── Modal ── */
+/* Modal */
 #modal-overlay {
   position: fixed;
   inset: 0;
@@ -566,7 +561,7 @@ body {
   background: var(--accent-h);
 }
 
-/* ── Context menu ── */
+/* Context menu */
 #ctx-menu {
   position: fixed;
   background: #2b2b2b;
@@ -605,7 +600,7 @@ body {
   margin: 3px 0;
 }
 
-/* ── Settings modal ── */
+/* Settings modal */
 #settings-overlay {
   position: fixed;
   inset: 0;

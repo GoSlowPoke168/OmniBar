@@ -41,6 +41,16 @@ const $panelUrlText = document.getElementById('panel-url-text');
 
 // ── Init ───────────────────────────────────
 async function init() {
+  let windowId = null;
+  try {
+    const win = await chrome.windows.getCurrent();
+    windowId = win?.id;
+  } catch (_) {}
+
+  if (windowId) {
+    chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => {});
+  }
+
   const stored = await chrome.storage.local.get('apps');
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
   renderStrip();
@@ -49,7 +59,9 @@ async function init() {
   // When the user closes the panel via the browser's own X button,
   // notify background.js so the hotkey toggle state stays accurate.
   window.addEventListener('pagehide', () => {
-    chrome.runtime.sendMessage({ type: 'panel-closed' }).catch(() => { });
+    if (windowId) {
+      chrome.runtime.sendMessage({ type: 'panel-closed', windowId }).catch(() => { });
+    }
   });
 }
 
@@ -135,9 +147,6 @@ function toggleApp(app) {
 function openApp(app) {
   activeId = app.id;
   panelOpen = true;
-
-  // Notify background.js so it can track window-persistence
-  chrome.runtime.sendMessage({ type: 'panel-opened' }).catch(() => { });
 
   // Show content panel
   $content.classList.remove('hidden');
