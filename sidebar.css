@@ -1,0 +1,798 @@
+/* ── Reset ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #1f1f1f;
+  --strip-bg: #272727;
+  --border: #383838;
+  --accent: #5b9cf6;
+  --accent-h: #7ab4ff;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --danger: #e05252;
+  --icon-size: 48px;
+  --radius: 10px;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* ── Root layout ── */
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* ── Content panel (left, flex-1 spacer) ── */
+#content-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+/*
+ * KEY: use visibility:hidden instead of display:none so the element keeps
+ * its flex-1 space — this is what keeps the icon strip pinned to the RIGHT
+ * even when no app is open.
+ */
+#content-panel.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* iframe fills the panel */
+#app-frame {
+  flex: 1;
+  border: none;
+  width: 100%;
+  background: #fff;
+}
+
+/* Blocked-site overlay */
+#blocked-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  gap: 12px;
+  background: var(--bg);
+}
+
+#blocked-msg.hidden {
+  display: none;
+}
+
+.blocked-icon {
+  font-size: 40px;
+}
+
+#blocked-msg h3 {
+  font-size: 15px;
+}
+
+#blocked-msg p {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+#blocked-msg button {
+  width: 100%;
+  max-width: 190px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #333;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background .15s;
+}
+
+#blocked-msg button:hover {
+  background: #444;
+}
+
+/* ── Loading spinner ── */
+#load-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 5;
+}
+
+#load-spinner.hidden {
+  display: none;
+}
+
+.spinner-ring {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Panel header (prototype: controls at top) ── */
+#panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 6px 7px 12px;
+  background: var(--strip-bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 6px;
+  min-height: 50px;
+}
+
+#panel-header.hidden {
+  display: none;
+}
+
+#panel-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+#panel-app-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#panel-app-url {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 7px;
+  width: fit-content;
+  max-width: 100%;
+  cursor: pointer;
+  /* reset button defaults */
+  font-family: inherit;
+  text-align: left;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+#panel-app-url:hover {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .18);
+  color: var(--text);
+}
+
+#panel-app-url.copied {
+  color: #5dbe7a;
+  border-color: rgba(93, 190, 122, .4);
+  background: rgba(93, 190, 122, .08);
+}
+
+.lock-svg {
+  width: 9px;
+  height: 11px;
+  flex-shrink: 0;
+  opacity: .7;
+}
+
+#panel-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.hdr-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+
+.hdr-btn:hover {
+  background: rgba(255, 255, 255, .09);
+  color: var(--text);
+}
+
+.hdr-svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+.hdr-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+  align-self: center;
+}
+
+.hdr-btn.success {
+  color: #5dbe7a !important;
+  background: rgba(93, 190, 122, .1) !important;
+}
+
+.hdr-btn.danger {
+  color: var(--danger) !important;
+  background: rgba(224, 82, 82, .12) !important;
+}
+
+
+/* ── Icon strip (RIGHT — always) ── */
+#icon-strip {
+  width: var(--icon-size);
+  background: var(--strip-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0 4px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+}
+
+/* Divider line */
+.strip-divider {
+  width: 30px;
+  height: 1px;
+  background: var(--border);
+  margin: 5px auto;
+  flex-shrink: 0;
+}
+
+/* Scrollable app icon list */
+#app-icons {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#app-icons::-webkit-scrollbar {
+  width: 3px;
+}
+
+#app-icons::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* Individual app icon */
+.app-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, transform .1s;
+  user-select: none;
+}
+
+.app-icon:hover {
+  background: rgba(255, 255, 255, .08);
+}
+
+.app-icon.active {
+  background: rgba(91, 156, 246, .18);
+  outline: 2px solid rgba(91, 156, 246, .5);
+  outline-offset: -1px;
+}
+
+.app-icon.drag-over {
+  background: rgba(91, 156, 246, .25);
+  transform: scale(1.1);
+}
+
+.app-icon.dragging {
+  opacity: .3;
+}
+
+.app-icon img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.app-icon .fallback {
+  display: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4a7cf6, #7b5cf6);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Tooltip for app icons */
+.app-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s .4s;
+  border: 1px solid var(--border);
+  z-index: 100;
+}
+
+.app-icon:hover::after {
+  opacity: 1;
+}
+
+/* Remove badge (edit mode) */
+.remove-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Strip footer */
+#strip-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+  padding-top: 2px;
+}
+
+.strip-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+
+.strip-btn:hover {
+  background: rgba(255, 255, 255, .08);
+  color: var(--text);
+}
+
+.strip-btn.active {
+  color: var(--accent);
+}
+
+/* Edit mode wiggle */
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-2.5deg);
+  }
+
+  75% {
+    transform: rotate(2.5deg);
+  }
+}
+
+.edit-mode .app-icon {
+  animation: wiggle .45s ease-in-out infinite;
+}
+
+/* ── Modal ── */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(3px);
+}
+
+#modal-overlay.hidden {
+  display: none;
+}
+
+#modal {
+  background: #2b2b2b;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  width: calc(100% - 32px);
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#modal h3 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+#modal input {
+  background: #1a1a1a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+#modal input:focus {
+  border-color: var(--accent);
+}
+
+#modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#modal-actions button {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #333;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background .15s;
+}
+
+#modal-actions button:hover {
+  background: #444;
+}
+
+#modal-actions button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+#modal-actions button.primary:hover {
+  background: var(--accent-h);
+}
+
+/* ── Context menu ── */
+#ctx-menu {
+  position: fixed;
+  background: #2b2b2b;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  min-width: 165px;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .55);
+}
+
+#ctx-menu.hidden {
+  display: none;
+}
+
+.ctx-item {
+  padding: 7px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  transition: background .12s;
+}
+
+.ctx-item:hover {
+  background: rgba(255, 255, 255, .08);
+}
+
+.ctx-item.danger {
+  color: var(--danger);
+}
+
+#ctx-menu hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3px 0;
+}
+
+/* ── Settings modal ── */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998;
+  backdrop-filter: blur(3px);
+}
+
+#settings-overlay.hidden {
+  display: none;
+}
+
+#settings-modal {
+  background: #2b2b2b;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: calc(100% - 32px);
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  max-height: 82vh;
+  overflow: hidden;
+}
+
+#settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#settings-header h3 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#settings-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background .15s, color .15s;
+}
+
+#settings-close:hover {
+  background: rgba(255, 255, 255, .08);
+  color: var(--text);
+}
+
+#settings-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#settings-body section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#settings-body h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 2px;
+}
+
+#settings-body p {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+#settings-import-file {
+  display: none;
+}
+
+.settings-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #333;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.settings-btn:hover {
+  background: #3d3d3d;
+}
+
+.settings-btn.danger {
+  color: var(--danger);
+}
+
+.settings-btn.danger:hover {
+  background: rgba(224, 82, 82, .12);
+  border-color: rgba(224, 82, 82, .35);
+}
+
+/* Keyboard shortcut display */
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+kbd {
+  background: #3a3a3a;
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-bottom-color: rgba(255, 255, 255, .08);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .4);
+  line-height: 1.4;
+}
+
+.shortcut-plus {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.shortcut-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+/* Focus outlines for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 10000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

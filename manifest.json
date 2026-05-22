@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "OmniBar",
+  "version": "1.0.0",
+  "description": "A customizable sidebar for your favorite AI tools and web apps.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "tabs",
+    "windows",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "action": {
+    "default_title": "Open OmniBar",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Z",
+        "windows": "Alt+Z"
+      },
+      "description": "Open / close OmniBar"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "strip_frame_headers",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

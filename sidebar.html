@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniBar</title>
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── LEFT: content panel (flex-1 spacer, hidden when nothing open) ── -->
+    <div id="content-panel" class="hidden">
+      <!-- Top header bar -->
+      <div id="panel-header" class="hidden">
+        <div id="panel-header-info">
+          <span id="panel-app-name"></span>
+          <button id="panel-app-url" title="Click to copy URL">
+            <svg class="lock-svg" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="6.5" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
+              <path d="M3.5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <circle cx="6" cy="10.5" r="1" fill="currentColor"/>
+            </svg>
+            <span id="panel-url-text"></span>
+          </button>
+        </div>
+        <div id="panel-header-btns">
+          <!-- Page context buttons -->
+          <button class="hdr-btn" id="hdr-copyurl" title="Copy page URL">
+            <svg class="hdr-svg" viewBox="0 0 16 16" fill="none">
+              <path d="M6.5 9.5a4 4 0 0 0 5.656 0l1.5-1.5a4 4 0 0 0-5.656-5.656l-.857.857" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M9.5 6.5a4 4 0 0 0-5.656 0l-1.5 1.5a4 4 0 0 0 5.656 5.656l.857-.857" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Divider -->
+          <div class="hdr-divider"></div>
+          <!-- Navigation controls -->
+          <button class="hdr-btn" id="hdr-newtab"  title="Open in new tab">&#x2197;</button>
+          <button class="hdr-btn" id="hdr-window"  title="Open in side window">&#x2750;</button>
+          <button class="hdr-btn" id="hdr-refresh" title="Refresh">&#x21BA;</button>
+          <button class="hdr-btn" id="hdr-close"   title="Close">&#x2715;</button>
+        </div>
+      </div>
+      <iframe
+        id="app-frame"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+        allow="clipboard-read; clipboard-write"
+      ></iframe>
+      <div id="load-spinner" class="hidden"><div class="spinner-ring"></div></div>
+      <div id="blocked-msg" class="hidden">
+        <div class="blocked-icon">&#x1F512;</div>
+        <h3>Site blocked embedding</h3>
+        <p>This site prevents being displayed in frames even after header stripping.</p>
+        <button id="blocked-newtab">Open in New Tab</button>
+        <button id="blocked-window">Open in Side Window</button>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: icon strip — always on right ── -->
+    <div id="icon-strip">
+
+      <!-- App icon list -->
+      <div id="app-icons"></div>
+
+      <!-- Bottom actions -->
+      <div id="strip-footer">
+        <div class="strip-divider"></div>
+        <button class="strip-btn" id="btn-add"      title="Add app">&#x002B;</button>
+        <button class="strip-btn" id="btn-edit"     title="Edit / reorder">&#x270E;</button>
+        <button class="strip-btn" id="btn-settings" title="Settings">&#x2699;</button>
+      </div>
+    </div>
+
+  </div><!-- #app -->
+
+  <!-- Add / Edit modal -->
+  <div id="modal-overlay" class="hidden">
+    <div id="modal">
+      <h3 id="modal-title">Add Web App</h3>
+      <label>Name<input type="text" id="modal-name" placeholder="Claude, GitHub, …" autocomplete="off"></label>
+      <label>URL<input type="url"  id="modal-url"  placeholder="https://claude.ai/new" autocomplete="off"></label>
+      <div id="modal-actions">
+        <button id="modal-cancel">Cancel</button>
+        <button id="modal-save" class="primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu" class="hidden">
+    <div class="ctx-item" data-action="open-tab">Open in new tab</div>
+    <div class="ctx-item" data-action="open-win">Open in side window</div>
+    <hr>
+    <div class="ctx-item" data-action="edit">Edit</div>
+    <div class="ctx-item danger" data-action="remove">Remove</div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="settings-overlay" class="hidden">
+    <div id="settings-modal">
+      <div id="settings-header">
+        <h3>Settings</h3>
+        <button id="settings-close" title="Close">&#x2715;</button>
+      </div>
+      <div id="settings-body">
+        <section>
+          <h4>App Data</h4>
+          <button class="settings-btn" id="settings-export">
+            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Apps (JSON)
+          </button>
+          <button class="settings-btn" id="settings-import">
+            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import Apps (JSON)
+          </button>
+          <input type="file" id="settings-import-file" accept=".json">
+          <button class="settings-btn danger" id="settings-reset">
+            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+            Reset to Defaults
+          </button>
+        </section>
+        <section>
+          <h4>Keyboard Shortcut</h4>
+          <div class="shortcut-row">
+            <kbd>Alt</kbd><span class="shortcut-plus">+</span><kbd>Z</kbd>
+            <span class="shortcut-label">open / close sidebar</span>
+          </div>
+          <p>To change, visit the browser shortcuts page:</p>
+          <button class="settings-btn" id="settings-shortcut-open">
+            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Configure Shortcuts
+          </button>
+        </section>
+        <section>
+          <h4>How to Use</h4>
+          <p>&#x2022; Click an icon to open it in the sidebar</p>
+          <p>&#x2022; Right-click an icon to edit, remove, or open elsewhere</p>
+          <p>&#x2022; Click &#x270E; to enter edit mode &amp; drag to reorder</p>
+          <p>&#x2022; Click &#x002B; to add a new app</p>
+        </section>
+        <section>
+          <h4>About</h4>
+          <p>Web App Sidebar &mdash; v1.0.0</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="sidebar.js"></script>
+</body>
+</html>
