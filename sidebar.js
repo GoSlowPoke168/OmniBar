@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────
-   OmniBar — sidebar.js  (v2)
+   OmniBar
 ───────────────────────────────────────────── */
 
 const DEFAULT_APPS = [
@@ -11,7 +11,7 @@ const DEFAULT_APPS = [
   { id: uid(), name: 'Google Image Search', url: 'https://images.google.com/' }
 ];
 
-// ── State ──────────────────────────────────
+// States
 let apps = [];
 let activeId = null;
 let panelOpen = false;
@@ -21,7 +21,7 @@ let dragSrcIdx = null;
 let ctxApp = null;
 let loadTimer = null;
 
-// ── DOM refs ───────────────────────────────
+// DOM refs
 const $content = document.getElementById('content-panel');
 const $frame = document.getElementById('app-frame');
 const $spinner = document.getElementById('load-spinner');
@@ -39,16 +39,16 @@ const $panelHeader = document.getElementById('panel-header');
 const $panelName = document.getElementById('panel-app-name');
 const $panelUrlText = document.getElementById('panel-url-text');
 
-// ── Init ───────────────────────────────────
+// Init
 async function init() {
   let windowId = null;
   try {
     const win = await chrome.windows.getCurrent();
     windowId = win?.id;
-  } catch (_) {}
+  } catch (_) { }
 
   if (windowId) {
-    chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => {});
+    chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
   }
 
   const stored = await chrome.storage.local.get('apps');
@@ -65,7 +65,7 @@ async function init() {
   });
 }
 
-// ── Utilities ──────────────────────────────
+// Utilities
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
@@ -78,7 +78,7 @@ function save() {
   chrome.storage.local.set({ apps });
 }
 
-// ── Render icon strip ──────────────────────
+// Render app icons
 function renderStrip() {
   $icons.innerHTML = '';
   if (editMode) $icons.classList.add('edit-mode');
@@ -114,7 +114,7 @@ function renderStrip() {
     el.appendChild(img);
     el.appendChild(fb);
 
-    // Remove badge (edit mode)
+    // Remove icon (edit mode)
     if (editMode) {
       const badge = document.createElement('button');
       badge.className = 'remove-badge';
@@ -138,7 +138,7 @@ function renderStrip() {
   });
 }
 
-// ── Open / toggle app ──────────────────────
+// Open / toggle app
 function toggleApp(app) {
   if (panelOpen && activeId === app.id) { closePanel(); return; }
   openApp(app);
@@ -220,7 +220,7 @@ function closePanel() {
   renderStrip();
 }
 
-// ── Open helpers ───────────────────────────
+// Open helpers
 function openInTab(url) {
   chrome.tabs.create({ url });
 }
@@ -232,7 +232,7 @@ function openInWindow(url) {
   });
 }
 
-// ── Context menu ───────────────────────────
+// Context menu
 function showCtxMenu(e, app) {
   ctxApp = app;
   const menuW = 170, menuH = 110;
@@ -242,7 +242,7 @@ function showCtxMenu(e, app) {
 }
 function hideCtxMenu() { $ctxMenu.classList.add('hidden'); ctxApp = null; }
 
-// ── Modal ──────────────────────────────────
+// Modal
 function openModal(app = null) {
   editingId = app?.id ?? null;
   $mTitle.textContent = app ? 'Edit App' : 'Add Web App';
@@ -278,21 +278,21 @@ function saveModal() {
   save(); closeModal(); renderStrip();
 }
 
-// ── Remove ─────────────────────────────────
+// Remove
 function removeApp(id) {
   if (activeId === id) closePanel();
   apps = apps.filter(a => a.id !== id);
   save(); renderStrip();
 }
 
-// ── Edit mode ──────────────────────────────
+// Edit mode
 function toggleEditMode() {
   editMode = !editMode;
   if (editMode && panelOpen) closePanel();
   renderStrip();
 }
 
-// ── Settings ───────────────────────────────
+// Settings
 function openSettings() { $settingsOverlay.classList.remove('hidden'); }
 function closeSettings() { $settingsOverlay.classList.add('hidden'); }
 
@@ -320,7 +320,7 @@ function showToast(message, type = 'info') {
     toast.style.background = 'var(--accent)';
   }
   toast.classList.add('show');
-  
+
   if (toastTimeoutId) clearTimeout(toastTimeoutId);
   toastTimeoutId = setTimeout(() => {
     toast.classList.remove('show');
@@ -356,7 +356,7 @@ function resetToDefaults() {
   showToast('Reset to defaults successfully!', 'success');
 }
 
-// ── Drag & drop ────────────────────────────
+// Drag & drop
 function onDragStart(e, idx) {
   dragSrcIdx = idx;
   e.dataTransfer.effectAllowed = 'move';
@@ -380,7 +380,7 @@ function cleanDrag() {
     .forEach(el => el.classList.remove('dragging', 'drag-over'));
 }
 
-// ── All listeners ──────────────────────────
+// All listeners
 function bindListeners() {
   // Blocked-site fallbacks
   document.getElementById('blocked-newtab').addEventListener('click', () => {
@@ -507,5 +507,5 @@ function bindListeners() {
   });
 }
 
-// ── Boot ───────────────────────────────────
+// Boot
 init();

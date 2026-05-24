@@ -1,4 +1,4 @@
-/* ── Reset ── */
+/* Reset */
 *,
 *::before,
 *::after {
@@ -33,14 +33,14 @@ body {
   font-size: 13px;
 }
 
-/* ── Root layout ── */
+/* Root layout */
 #app {
   display: flex;
   height: 100vh;
   width: 100%;
 }
 
-/* ── Content panel (left, flex-1 spacer) ── */
+/* Content panel (left, flex-1 spacer) */
 #content-panel {
   flex: 1;
   display: flex;
