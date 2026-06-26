@@ -57,6 +57,12 @@ This extension is intended to be loaded as an unpacked extension in Developer Mo
 
 To allow external websites to load inside the sidebar's `<iframe>` context, this extension utilizes the `declarativeNetRequest` API to modify HTTP response headers. However, some websites might not connect and load due to client-side bot-mitigation techniques (such as Cloudflare Turnstile), which block rendering within an iframe.
 
+## TODO
+
+- [ ] Add a page button to extract context from the current page
+
+Add the ability to 
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
