@@ -63,7 +63,10 @@ To allow external websites to load inside the sidebar's `<iframe>` context, this
 
 - [ ] Add a page button to extract context from the current page
 
-Add the ability to 
+## Support the Project
+If you find this plugin useful, please leave a star on GitHub or consider supporting its development!
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?logo=ko-fi&logoColor=white&style=for-the-badge)](https://ko-fi.com/jeremyhou)
 
 ## License
 
