@@ -114,6 +114,9 @@ function setTip(el, text) {
 }
 function showTip(el) {
   $tip.textContent = el.dataset.tip;
+  // Measure from the origin so the old position can't squeeze the width
+  $tip.style.left = '0px';
+  $tip.style.top = '0px';
   const r = el.getBoundingClientRect();
   const w = $tip.offsetWidth, h = $tip.offsetHeight, m = 6;
   let x, y;
