@@ -1,13 +1,31 @@
 // Lets the OmniBar sidebar type a prompt into the chat box of the app loaded in its frame.
 const bridgeOrigin = new URL(chrome.runtime.getURL('')).origin;
 
-// An error response (e.g. ChatGPT's 403) or a Google sign-in page usually means the app needs a sign-in.
+// Signs an app needs a sign-in (or a check) in its own tab: an error response (e.g. ChatGPT's 403),
+// a Google sign-in page, or one of these messages shown by the app.
 const SIGNIN_HOSTS = ['accounts.google.com'];
+const SIGNIN_TEXT = /can’t (run|finish) in an embedded view|Max challenge attempts exceeded/i;
 
 if (window.top !== window && location.ancestorOrigins?.[0] === bridgeOrigin) {
+  const notifySignIn = () => window.parent.postMessage({ type: 'omnibar-signin-needed' }, bridgeOrigin);
   const status = performance.getEntriesByType('navigation')[0]?.responseStatus ?? 0;
+
   if (status >= 400 || SIGNIN_HOSTS.includes(location.hostname)) {
-    window.parent.postMessage({ type: 'omnibar-signin-needed' }, bridgeOrigin);
+    notifySignIn();
+  } else {
+    let pending = false;
+    const check = () => {
+      pending = false;
+      if (!SIGNIN_TEXT.test(document.body?.innerText ?? '')) return;
+      observer.disconnect();
+      notifySignIn();
+    };
+    const observer = new MutationObserver(() => {
+      if (!pending) { pending = true; setTimeout(check, 500); }
+    });
+    observer.observe(document, { childList: true, subtree: true, characterData: true });
+    check();
+    setTimeout(() => observer.disconnect(), 30000);
   }
 
   window.addEventListener('message', e => {

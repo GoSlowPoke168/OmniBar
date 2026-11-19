@@ -1,6 +1,23 @@
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => { });
 
+// Strip frame-blocking headers only for frames outside browser tabs (OmniBar's side panel).
+chrome.declarativeNetRequest.updateSessionRules({
+  removeRuleIds: [1],
+  addRules: [{
+    id: 1,
+    priority: 1,
+    action: {
+      type: 'modifyHeaders',
+      responseHeaders: [
+        { header: 'X-Frame-Options', operation: 'remove' },
+        { header: 'Content-Security-Policy', operation: 'remove' }
+      ]
+    },
+    condition: { resourceTypes: ['sub_frame'], tabIds: [chrome.tabs.TAB_ID_NONE] }
+  }]
+}).catch(() => { });
+
 // Open/close toggle (mirrored to storage.session so it survives service worker restarts)
 const OPEN_WINDOWS_KEY = 'openWindows';
 const openWindows = new Set();
