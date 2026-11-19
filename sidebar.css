@@ -64,8 +64,19 @@ body {
   background: #fff;
 }
 
+/* Desktop view: render the frame wider, then scale it down to fit */
+#content-panel.desktop-view {
+  overflow: hidden;
+}
+
+#app-frame.desktop {
+  flex: none;
+  transform-origin: 0 0;
+}
+
 /* Blocked-site overlay */
-#blocked-msg {
+#blocked-msg,
+#signin-msg {
   position: absolute;
   inset: 0;
   display: flex;
@@ -78,7 +89,8 @@ body {
   background: var(--bg);
 }
 
-#blocked-msg.hidden {
+#blocked-msg.hidden,
+#signin-msg.hidden {
   display: none;
 }
 
@@ -86,17 +98,20 @@ body {
   font-size: 40px;
 }
 
-#blocked-msg h3 {
+#blocked-msg h3,
+#signin-msg h3 {
   font-size: 15px;
 }
 
-#blocked-msg p {
+#blocked-msg p,
+#signin-msg p {
   font-size: 12px;
   color: var(--text-dim);
   line-height: 1.5;
 }
 
-#blocked-msg button {
+#blocked-msg button,
+#signin-msg button {
   width: 100%;
   max-width: 190px;
   padding: 8px 16px;
@@ -109,8 +124,22 @@ body {
   transition: background .15s;
 }
 
-#blocked-msg button:hover {
+#blocked-msg button:hover,
+#signin-msg button:hover {
   background: #444;
+}
+
+#signin-msg a {
+  color: var(--accent);
+}
+
+#signin-msg ol {
+  max-width: 240px;
+  padding-left: 18px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
 }
 
 /* Loading spinner */
@@ -258,6 +287,19 @@ body {
   background: var(--border);
   margin: 0 4px;
   align-self: center;
+}
+
+.hdr-btn.active {
+  color: var(--accent);
+}
+
+#hdr-desktop .icon-desktop,
+#hdr-desktop.active .icon-mobile {
+  display: none;
+}
+
+#hdr-desktop.active .icon-desktop {
+  display: block;
 }
 
 .hdr-btn.success {
@@ -719,6 +761,22 @@ body {
 
 .settings-btn:hover {
   background: #3d3d3d;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #333;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .settings-btn.danger {

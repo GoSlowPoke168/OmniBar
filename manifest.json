@@ -36,6 +36,20 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["claude-frame.js"],
+      "all_frames": true,
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["frame-bridge.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
   "declarative_net_request": {
     "rule_resources": [
       {

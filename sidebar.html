@@ -37,18 +37,41 @@
                 stroke-width="1.4" stroke-linecap="round" />
             </svg>
           </button>
+          <button class="hdr-btn" id="hdr-summarize" title="Summarize page">
+            <svg class="hdr-svg" viewBox="0 0 16 16" fill="none">
+              <path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+          </button>
+          <button class="hdr-btn" id="hdr-ask" title="Ask about page">
+            <svg class="hdr-svg" viewBox="0 0 16 16" fill="none">
+              <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.4"
+                stroke-linejoin="round" />
+              <path d="M6.6 5.6a1.4 1.4 0 1 1 1.9 1.3c-.3.1-.5.4-.5.7v.2" stroke="currentColor" stroke-width="1.2"
+                stroke-linecap="round" />
+            </svg>
+          </button>
           <!-- Divider -->
           <div class="hdr-divider"></div>
           <!-- Navigation controls -->
           <button class="hdr-btn" id="hdr-newtab" title="Open in new tab">&#x2197;</button>
           <button class="hdr-btn" id="hdr-window" title="Open in side window">&#x2750;</button>
+          <button class="hdr-btn" id="hdr-desktop" title="Mobile view (click for desktop)">
+            <svg class="hdr-svg icon-mobile" viewBox="0 0 16 16" fill="none">
+              <rect x="4.5" y="1.5" width="7" height="13" rx="1.5" stroke="currentColor" stroke-width="1.4" />
+              <path d="M7 12h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+            <svg class="hdr-svg icon-desktop" viewBox="0 0 16 16" fill="none">
+              <rect x="1.5" y="2.5" width="13" height="8.5" rx="1" stroke="currentColor" stroke-width="1.4" />
+              <path d="M6 14h4M8 11v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+          </button>
           <button class="hdr-btn" id="hdr-refresh" title="Refresh">&#x21BA;</button>
           <button class="hdr-btn" id="hdr-close" title="Close">&#x2715;</button>
         </div>
       </div>
       <iframe id="app-frame"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-        allow="clipboard-read; clipboard-write"></iframe>
+        allow="clipboard-read; clipboard-write; focus-without-user-activation *"></iframe>
       <div id="load-spinner" class="hidden">
         <div class="spinner-ring"></div>
       </div>
@@ -58,6 +81,20 @@
         <p>This site prevents being displayed in frames even after header stripping.</p>
         <button id="blocked-newtab">Open in New Tab</button>
         <button id="blocked-window">Open in Side Window</button>
+      </div>
+      <div id="signin-msg" class="hidden">
+        <div class="blocked-icon">&#x1F511;</div>
+        <h3>Sign in to <span class="signin-app"></span></h3>
+        <p><span class="signin-app"></span> needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+        <ol>
+          <li>Click <b>Sign in</b> to open <span class="signin-app"></span> in a separate window.</li>
+          <li>Sign in there, then close that window.</li>
+          <li><span class="signin-app"></span> reloads here. If it doesn't, click <b>Refresh</b>.</li>
+        </ol>
+        <button id="signin-open">Sign in</button>
+        <button id="signin-refresh">Refresh</button>
+        <p>Or <a href="#" id="signin-newtab">open <span class="signin-app"></span> in a new tab</a>, sign in there,
+          then come back and click <b>Refresh</b>.</p>
       </div>
     </div>
 
@@ -95,6 +132,7 @@
   <div id="ctx-menu" class="hidden">
     <div class="ctx-item" data-action="open-tab">Open in new tab</div>
     <div class="ctx-item" data-action="open-win">Open in side window</div>
+    <div class="ctx-item" data-action="signin">Sign in…</div>
     <hr>
     <div class="ctx-item" data-action="edit">Edit</div>
     <div class="ctx-item danger" data-action="remove">Remove</div>
@@ -108,6 +146,10 @@
         <button id="settings-close" title="Close">&#x2715;</button>
       </div>
       <div id="settings-body">
+        <section>
+          <h4>Default Page</h4>
+          <select class="settings-select" id="settings-default-page" aria-label="Default Page"></select>
+        </section>
         <section>
           <h4>App Data</h4>
           <button class="settings-btn" id="settings-export">

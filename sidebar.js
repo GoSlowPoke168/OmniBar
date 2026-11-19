@@ -13,6 +13,7 @@ const DEFAULT_APPS = [
 
 // States
 let apps = [];
+let defaultAppId = null;
 let activeId = null;
 let panelOpen = false;
 let editMode = false;
@@ -26,6 +27,7 @@ const $content = document.getElementById('content-panel');
 const $frame = document.getElementById('app-frame');
 const $spinner = document.getElementById('load-spinner');
 const $blocked = document.getElementById('blocked-msg');
+const $signin = document.getElementById('signin-msg');
 const $icons = document.getElementById('app-icons');
 const $overlay = document.getElementById('modal-overlay');
 const $mTitle = document.getElementById('modal-title');
@@ -34,6 +36,7 @@ const $mUrl = document.getElementById('modal-url');
 const $ctxMenu = document.getElementById('ctx-menu');
 const $settingsOverlay = document.getElementById('settings-overlay');
 const $settingsFile = document.getElementById('settings-import-file');
+const $defaultPageSelect = document.getElementById('settings-default-page');
 // Header
 const $panelHeader = document.getElementById('panel-header');
 const $panelName = document.getElementById('panel-app-name');
@@ -51,10 +54,15 @@ async function init() {
     chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
   }
 
-  const stored = await chrome.storage.local.get('apps');
+  const stored = await chrome.storage.local.get(['apps', 'defaultAppId']);
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
+  defaultAppId = stored.defaultAppId ?? null;
+  syncDefaultAppId();
   renderStrip();
   bindListeners();
+
+  const defaultApp = apps.find(a => a.id === defaultAppId);
+  if (defaultApp) openApp(defaultApp);
 
   // When the user closes the panel via the browser's own X button,
   // notify background.js so the hotkey toggle state stays accurate.
@@ -75,7 +83,10 @@ function getFavicon(url) {
   } catch { return ''; }
 }
 function save() {
-  chrome.storage.local.set({ apps });
+  chrome.storage.local.set({ apps, defaultAppId });
+}
+function syncDefaultAppId() {
+  if (!apps.some(a => a.id === defaultAppId)) defaultAppId = null;
 }
 
 // Render app icons
@@ -156,11 +167,13 @@ function openApp(app) {
   $panelName.textContent = app.name;
   try { $panelUrlText.textContent = new URL(app.url).hostname; } catch { $panelUrlText.textContent = app.url; }
   $panelHeader.classList.remove('hidden');
+  applyViewMode();
 
   // Reset state
   clearTimeout(loadTimer);
   $frame.style.display = 'block';
   $blocked.classList.add('hidden');
+  $signin.classList.add('hidden');
   $spinner.classList.remove('hidden');
 
   // Skip the onload that fires for src='' (about:blank), only handle the real URL load
@@ -196,6 +209,24 @@ function openApp(app) {
   renderStrip();
 }
 
+// Desktop view: give the frame a desktop-sized viewport and scale it to fit the sidebar.
+const DESKTOP_WIDTH = 1024;
+function applyViewMode() {
+  const app = apps.find(a => a.id === activeId);
+  const $btn = document.getElementById('hdr-desktop');
+  $btn.classList.toggle('active', !!app?.desktop);
+  $btn.title = app?.desktop ? 'Desktop view (click for mobile)' : 'Mobile view (click for desktop)';
+  const w = $content.clientWidth;
+  const h = $content.clientHeight - $panelHeader.offsetHeight;
+  const scale = app?.desktop ? Math.min(1, w / DESKTOP_WIDTH) : 1;
+  const on = scale < 1;
+  $content.classList.toggle('desktop-view', on);
+  $frame.classList.toggle('desktop', on);
+  $frame.style.width = on ? `${w / scale}px` : '';
+  $frame.style.height = on ? `${h / scale}px` : '';
+  $frame.style.transform = on ? `scale(${scale})` : '';
+}
+
 function closePanel() {
   panelOpen = false;
   activeId = null;
@@ -207,6 +238,7 @@ function closePanel() {
   $frame.onload = null;
   $spinner.classList.add('hidden');
   $blocked.classList.add('hidden');
+  $signin.classList.add('hidden');
   $frame.style.display = 'block';
   $panelHeader.classList.add('hidden');
 
@@ -224,18 +256,65 @@ function closePanel() {
 function openInTab(url) {
   chrome.tabs.create({ url });
 }
-function openInWindow(url) {
+function openInWindow(url, onCreated) {
   chrome.windows.getCurrent({}, win => {
     const w = 430, h = win.height || 900;
     const x = (win.left || 0) + (win.width || 1440) - w - 8;
-    chrome.windows.create({ url, type: 'popup', width: w, height: h, left: x, top: win.top || 0 });
+    chrome.windows.create({ url, type: 'popup', width: w, height: h, left: x, top: win.top || 0 }, onCreated);
+  });
+}
+
+// Sign in via a popup window; reload the app in the sidebar when that window closes.
+// Claude's window closes itself once its chat page is reached.
+let signInWinId = null;
+function signInViaWindow(app) {
+  if (signInWinId !== null) return;
+  signInWinId = -1;
+  const isClaude = new URL(app.url).hostname === 'claude.ai';
+  openInWindow(isClaude ? 'https://claude.ai/login' : app.url, win => {
+    if (!win) { signInWinId = null; return; }
+    signInWinId = win.id;
+    const tabId = win.tabs[0].id;
+    const onUpdated = (id, info) => {
+      if (!isClaude || id !== tabId || !info.url) return;
+      const { hostname, pathname } = new URL(info.url);
+      if (hostname === 'claude.ai' && (pathname === '/new' || pathname.startsWith('/chat'))) {
+        chrome.windows.remove(win.id);
+      }
+    };
+    const onRemoved = id => {
+      if (id !== win.id) return;
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      chrome.windows.onRemoved.removeListener(onRemoved);
+      signInWinId = null;
+      if (panelOpen && activeId === app.id) openApp(app);
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    chrome.windows.onRemoved.addListener(onRemoved);
+  });
+}
+
+// Page prompts (typed into the app's chat box by frame-bridge.js)
+let insertTimer = null;
+function sendPageToApp(buildPrompt, send) {
+  const app = apps.find(a => a.id === activeId);
+  if (!app) return;
+  chrome.runtime.sendMessage({ type: 'get-active-tab-url' }, res => {
+    const url = res?.url ?? '';
+    if (!/^https?:\/\//.test(url)) {
+      showToast('Open a regular web page first.', 'error');
+      return;
+    }
+    clearTimeout(insertTimer);
+    insertTimer = setTimeout(() => showToast("Couldn't reach this app. Try Refresh.", 'error'), 8000);
+    $frame.contentWindow.postMessage({ type: 'omnibar-insert', text: buildPrompt(url), send }, new URL(app.url).origin);
   });
 }
 
 // Context menu
 function showCtxMenu(e, app) {
   ctxApp = app;
-  const menuW = 170, menuH = 110;
+  const menuW = 170, menuH = 140;
   $ctxMenu.style.left = `${Math.min(e.clientX, window.innerWidth - menuW)}px`;
   $ctxMenu.style.top = `${Math.min(e.clientY, window.innerHeight - menuH)}px`;
   $ctxMenu.classList.remove('hidden');
@@ -282,6 +361,7 @@ function saveModal() {
 function removeApp(id) {
   if (activeId === id) closePanel();
   apps = apps.filter(a => a.id !== id);
+  syncDefaultAppId();
   save(); renderStrip();
 }
 
@@ -293,7 +373,16 @@ function toggleEditMode() {
 }
 
 // Settings
-function openSettings() { $settingsOverlay.classList.remove('hidden'); }
+function renderDefaultPageSelect() {
+  $defaultPageSelect.innerHTML = '';
+  $defaultPageSelect.appendChild(new Option('None', ''));
+  apps.forEach(a => $defaultPageSelect.appendChild(new Option(a.name, a.id)));
+  $defaultPageSelect.value = defaultAppId ?? '';
+}
+function openSettings() {
+  renderDefaultPageSelect();
+  $settingsOverlay.classList.remove('hidden');
+}
 function closeSettings() { $settingsOverlay.classList.add('hidden'); }
 
 function exportApps() {
@@ -334,7 +423,8 @@ function importApps(file) {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported) || !imported.every(a => a.name && a.url))
         throw new Error('Invalid format');
-      apps = imported.map(a => ({ id: a.id || uid(), name: String(a.name), url: String(a.url) }));
+      apps = imported.map(a => ({ id: a.id || uid(), name: String(a.name), url: String(a.url), desktop: a.desktop === true }));
+      syncDefaultAppId();
       save();
       if (panelOpen) closePanel();
       renderStrip(); closeSettings();
@@ -349,6 +439,7 @@ function importApps(file) {
 function resetToDefaults() {
   if (!confirm('Reset all apps to defaults? This cannot be undone.')) return;
   apps = DEFAULT_APPS.map(a => ({ ...a, id: uid() }));
+  defaultAppId = null;
   save();
   if (panelOpen) closePanel();
   renderStrip();
@@ -390,6 +481,30 @@ function bindListeners() {
     const a = apps.find(a => a.id === activeId); if (a) openInWindow(a.url);
   });
 
+  window.addEventListener('message', e => {
+    if (e.source !== $frame.contentWindow) return;
+    if (e.data?.type === 'omnibar-signin-needed') {
+      const a = apps.find(a => a.id === activeId); if (!a) return;
+      document.querySelectorAll('.signin-app').forEach(el => { el.textContent = a.name; });
+      $spinner.classList.add('hidden');
+      $signin.classList.remove('hidden');
+    }
+    if (e.data?.type === 'omnibar-insert-result') {
+      clearTimeout(insertTimer);
+      if (!e.data.ok) showToast("Couldn't find the chat box in this app.", 'error');
+    }
+  });
+  document.getElementById('signin-open').addEventListener('click', () => {
+    const a = apps.find(a => a.id === activeId); if (a) signInViaWindow(a);
+  });
+  document.getElementById('signin-newtab').addEventListener('click', e => {
+    e.preventDefault();
+    const a = apps.find(a => a.id === activeId); if (a) openInTab(a.url);
+  });
+  document.getElementById('signin-refresh').addEventListener('click', () => {
+    const a = apps.find(a => a.id === activeId); if (a) openApp(a);
+  });
+
   // Strip footer
   document.getElementById('btn-add').addEventListener('click', () => openModal());
   document.getElementById('btn-edit').addEventListener('click', toggleEditMode);
@@ -422,6 +537,20 @@ function bindListeners() {
       }
     });
   });
+
+  document.getElementById('hdr-summarize').addEventListener('click', () => {
+    sendPageToApp(url => `Please summarize the webpage at <pageUrl>${url}</pageUrl> using precise and concise language. Use headers and bulleted lists in the summary, to make it scannable. Maintain the meaning and factual accuracy.`, true);
+  });
+  document.getElementById('hdr-ask').addEventListener('click', () => {
+    sendPageToApp(url => `Use the webpage at <pageUrl>${url}</pageUrl> as context for my question: `, false);
+  });
+
+  document.getElementById('hdr-desktop').addEventListener('click', () => {
+    const a = apps.find(a => a.id === activeId); if (!a) return;
+    a.desktop = !a.desktop;
+    save(); applyViewMode();
+  });
+  window.addEventListener('resize', applyViewMode);
 
   document.getElementById('hdr-refresh').addEventListener('click', () => {
     if ($frame.src) {
@@ -465,6 +594,7 @@ function bindListeners() {
     if (!action || !ctxApp) return;
     if (action === 'open-tab') openInTab(ctxApp.url);
     if (action === 'open-win') openInWindow(ctxApp.url);
+    if (action === 'signin') signInViaWindow(ctxApp);
     if (action === 'edit') openModal(ctxApp);
     if (action === 'remove') removeApp(ctxApp.id);
     hideCtxMenu();
@@ -473,6 +603,7 @@ function bindListeners() {
   document.addEventListener('contextmenu', hideCtxMenu);
 
   // Settings modal
+  $defaultPageSelect.addEventListener('change', e => { defaultAppId = e.target.value || null; save(); });
   document.getElementById('settings-close').addEventListener('click', closeSettings);
   $settingsOverlay.addEventListener('click', e => { if (e.target === $settingsOverlay) closeSettings(); });
   document.getElementById('settings-export').addEventListener('click', exportApps);
