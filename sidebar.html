@@ -5,168 +5,242 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OmniBar</title>
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="sidebar.css">
 </head>
 
 <body>
+  <!-- Icon sprite (Lucide-derived, ISC license) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" /><path d="M12 18h.01" /></symbol>
+      <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2" /><path d="M8 21h8" /><path d="M12 17v4" /></symbol>
+      <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></symbol>
+      <symbol id="i-win" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></symbol>
+      <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /></symbol>
+      <symbol id="i-ask" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M12 5v14" /></symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z" /><path d="m15 5 4 4" /></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol>
+      <symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="m10 17 5-5-5-5" /><path d="M15 12H3" /></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /><path d="M12 15V3" /></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m17 8-5-5-5 5" /><path d="M12 3v12" /></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
+      <symbol id="i-xcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></symbol>
+      <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+      <symbol id="i-shield-off" viewBox="0 0 24 24"><path d="m2 2 20 20" /><path d="M5 5a1 1 0 0 0-1 1v7c0 5 3.5 7.5 7.67 8.94a1 1 0 0 0 .67.01c2.35-.82 4.48-1.97 5.9-3.71" /><path d="M9.31 3.65a12.25 12.25 0 0 0 1.93-1.37 1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1v7a9.78 9.78 0 0 1-.08 1.26" /></symbol>
+    </defs>
+  </svg>
+
   <div id="app">
 
     <!-- LEFT: content panel -->
     <div id="content-panel" class="hidden">
-      <!-- Top header bar -->
       <div id="panel-header" class="hidden">
         <div id="panel-header-info">
           <span id="panel-app-name"></span>
-          <button id="panel-app-url" title="Click to copy URL">
-            <svg class="lock-svg" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="1" y="6.5" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.25" />
-              <path d="M3.5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.25"
-                stroke-linecap="round" />
-              <circle cx="6" cy="10.5" r="1" fill="currentColor" />
-            </svg>
+          <button id="panel-app-url" data-tip="Copy app address">
+            <svg class="icon icon-xs"><use href="#i-lock" /></svg>
             <span id="panel-url-text"></span>
           </button>
         </div>
         <div id="panel-header-btns">
-          <!-- Page context buttons -->
-          <button class="hdr-btn" id="hdr-copyurl" title="Copy page URL">
-            <svg class="hdr-svg" viewBox="0 0 16 16" fill="none">
-              <path d="M6.5 9.5a4 4 0 0 0 5.656 0l1.5-1.5a4 4 0 0 0-5.656-5.656l-.857.857" stroke="currentColor"
-                stroke-width="1.4" stroke-linecap="round" />
-              <path d="M9.5 6.5a4 4 0 0 0-5.656 0l-1.5 1.5a4 4 0 0 0 5.656 5.656l.857-.857" stroke="currentColor"
-                stroke-width="1.4" stroke-linecap="round" />
-            </svg>
+          <button class="hdr-btn" id="hdr-copyurl" data-tip="Copy page link" aria-label="Copy page link">
+            <svg class="icon"><use href="#i-link" /></svg>
           </button>
-          <!-- Divider -->
+          <button class="hdr-btn" id="hdr-desktop" data-tip="Mobile view (click for desktop)" aria-label="Toggle desktop view">
+            <svg class="icon icon-mobile"><use href="#i-phone" /></svg>
+            <svg class="icon icon-desktop"><use href="#i-monitor" /></svg>
+          </button>
           <div class="hdr-divider"></div>
-          <!-- Navigation controls -->
-          <button class="hdr-btn" id="hdr-newtab" title="Open in new tab">&#x2197;</button>
-          <button class="hdr-btn" id="hdr-window" title="Open in side window">&#x2750;</button>
-          <button class="hdr-btn" id="hdr-refresh" title="Refresh">&#x21BA;</button>
-          <button class="hdr-btn" id="hdr-close" title="Close">&#x2715;</button>
+          <button class="hdr-btn" id="hdr-newtab" data-tip="Open in new tab" aria-label="Open in new tab">
+            <svg class="icon"><use href="#i-ext" /></svg>
+          </button>
+          <button class="hdr-btn" id="hdr-window" data-tip="Open in side window" aria-label="Open in side window">
+            <svg class="icon"><use href="#i-win" /></svg>
+          </button>
+          <button class="hdr-btn" id="hdr-refresh" data-tip="Refresh" aria-label="Refresh">
+            <svg class="icon"><use href="#i-refresh" /></svg>
+          </button>
+          <button class="hdr-btn" id="hdr-close" data-tip="Close app" aria-label="Close app">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
         </div>
       </div>
-      <iframe id="app-frame"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-        allow="clipboard-read; clipboard-write"></iframe>
-      <div id="load-spinner" class="hidden">
-        <div class="spinner-ring"></div>
+
+      <div id="frame-wrap">
+        <iframe id="app-frame"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+          allow="clipboard-read; clipboard-write; focus-without-user-activation *"></iframe>
+        <div id="load-spinner" class="hidden">
+          <div class="spinner-ring"></div>
+        </div>
+        <div id="blocked-msg" class="state-panel hidden">
+          <div class="state-icon"><svg class="icon"><use href="#i-shield-off" /></svg></div>
+          <h3>Site blocked embedding</h3>
+          <p>This site prevents being displayed in frames even after header stripping.</p>
+          <button class="btn btn-primary btn-wide" id="blocked-newtab">Open in new tab</button>
+          <button class="btn btn-wide" id="blocked-window">Open in side window</button>
+        </div>
+        <div id="signin-msg" class="state-panel hidden">
+          <div class="state-icon"><svg class="icon"><use href="#i-login" /></svg></div>
+          <h3>Sign in to <span class="signin-app"></span></h3>
+          <p><span class="signin-app"></span> needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+          <ol>
+            <li>Click <b>Sign in</b> to open <span class="signin-app"></span> in a separate window.</li>
+            <li>Sign in there, then close that window.</li>
+            <li><span class="signin-app"></span> reloads here. If it doesn't, click <b>Refresh</b>.</li>
+          </ol>
+          <button class="btn btn-primary btn-wide" id="signin-open">Sign in</button>
+          <button class="btn btn-wide" id="signin-refresh">Refresh</button>
+          <p class="state-note">Or <a href="#" id="signin-newtab">open <span class="signin-app"></span> in a new tab</a>, sign in
+            there, then come back and click <b>Refresh</b>.</p>
+        </div>
       </div>
-      <div id="blocked-msg" class="hidden">
-        <div class="blocked-icon">&#x1F512;</div>
-        <h3>Site blocked embedding</h3>
-        <p>This site prevents being displayed in frames even after header stripping.</p>
-        <button id="blocked-newtab">Open in New Tab</button>
-        <button id="blocked-window">Open in Side Window</button>
+
+      <div id="action-bar">
+        <div id="action-page">Page: <b id="action-page-title"></b></div>
+        <div id="action-btns">
+          <button class="btn btn-primary" id="act-summarize">
+            <svg class="icon"><use href="#i-sparkle" /></svg><span>Summarize page</span>
+          </button>
+          <button class="btn" id="act-ask">
+            <svg class="icon"><use href="#i-ask" /></svg><span>Ask about page</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shown in the content area when no app is open -->
+    <div id="idle-panel">
+      <p id="empty-state"></p>
+      <div id="edit-hint" class="hidden">
+        <h3>Editing apps</h3>
+        <p>Drag icons to reorder. Tap &times; to remove. Click the pencil again when finished.</p>
       </div>
     </div>
 
     <!-- RIGHT: icon strip -->
     <div id="icon-strip">
-
-      <!-- App icon list -->
       <div id="app-icons"></div>
-
-      <!-- Bottom actions -->
       <div id="strip-footer">
         <div class="strip-divider"></div>
-        <button class="strip-btn" id="btn-add" title="Add app">&#x002B;</button>
-        <button class="strip-btn" id="btn-edit" title="Edit / reorder">&#x270E;</button>
-        <button class="strip-btn" id="btn-settings" title="Settings">&#x2699;</button>
+        <button class="strip-btn" id="btn-add" data-tip="Add app" aria-label="Add app">
+          <svg class="icon"><use href="#i-plus" /></svg>
+        </button>
+        <button class="strip-btn" id="btn-edit" data-tip="Edit apps — drag to reorder, × to remove" aria-label="Edit apps">
+          <svg class="icon"><use href="#i-pen" /></svg>
+        </button>
+        <button class="strip-btn" id="btn-settings" data-tip="Settings" aria-label="Settings">
+          <svg class="icon"><use href="#i-gear" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sheets cover the content area only; the strip stays usable -->
+    <div id="sheet-layer" class="hidden">
+
+      <div class="sheet" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="sheet-header">
+          <h2 id="settings-title">Settings</h2>
+          <button class="hdr-btn" id="settings-close" data-tip="Close" aria-label="Close settings">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body">
+          <section>
+            <h4 class="label">Appearance</h4>
+            <div class="segmented" id="settings-theme" role="radiogroup" aria-label="Appearance">
+              <button role="radio" data-mode="system">System</button>
+              <button role="radio" data-mode="light">Light</button>
+              <button role="radio" data-mode="dark">Dark</button>
+            </div>
+          </section>
+          <section>
+            <h4 class="label">Default page</h4>
+            <div class="select-wrap">
+              <select class="select" id="settings-default-page" aria-label="Default page"></select>
+              <svg class="icon select-chev"><use href="#i-chev" /></svg>
+            </div>
+            <p class="help">Opens automatically when the sidebar opens.</p>
+          </section>
+          <section>
+            <h4 class="label">Apps</h4>
+            <button class="row-btn" id="settings-export"><svg class="icon"><use href="#i-download" /></svg>Export apps</button>
+            <button class="row-btn" id="settings-import"><svg class="icon"><use href="#i-upload" /></svg>Import apps</button>
+            <input type="file" id="settings-import-file" accept=".json" hidden>
+            <button class="row-btn danger" id="settings-reset"><svg class="icon"><use href="#i-reset" /></svg>Reset to defaults</button>
+          </section>
+          <section>
+            <h4 class="label">Shortcut</h4>
+            <div class="shortcut-row">
+              <span id="shortcut-keys"></span>
+              <span class="help">opens / closes the sidebar</span>
+              <a href="#" class="link" id="settings-shortcut-open">Change</a>
+            </div>
+          </section>
+          <p class="help" id="settings-version"></p>
+        </div>
+      </div>
+
+      <div class="sheet sheet-sm" id="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="sheet-header">
+          <h2 id="modal-title">Add app</h2>
+          <button class="hdr-btn" id="modal-close" data-tip="Close" aria-label="Close">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body">
+          <label class="field">Name
+            <input class="input" type="text" id="modal-name" placeholder="Perplexity" autocomplete="off">
+          </label>
+          <label class="field">Web address
+            <input class="input" type="text" id="modal-url" placeholder="perplexity.ai" autocomplete="off" spellcheck="false">
+            <span class="help">You can leave out https://</span>
+          </label>
+          <div class="sheet-actions">
+            <button class="btn" id="modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="modal-save" disabled>Add app</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="confirm-overlay" class="hidden">
+        <div class="sheet sheet-sm" id="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+          <div class="sheet-body">
+            <h2 id="confirm-title"></h2>
+            <p class="help" id="confirm-body"></p>
+            <div class="sheet-actions">
+              <button class="btn" id="confirm-cancel">Cancel</button>
+              <button class="btn btn-danger" id="confirm-ok"></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
   </div><!-- #app -->
 
-  <!-- Add / Edit modal -->
-  <div id="modal-overlay" class="hidden">
-    <div id="modal">
-      <h3 id="modal-title">Add Web App</h3>
-      <label>Name<input type="text" id="modal-name" placeholder="Claude, GitHub, …" autocomplete="off"></label>
-      <label>URL<input type="url" id="modal-url" placeholder="https://claude.ai/new" autocomplete="off"></label>
-      <div id="modal-actions">
-        <button id="modal-cancel">Cancel</button>
-        <button id="modal-save" class="primary">Save</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Context menu -->
-  <div id="ctx-menu" class="hidden">
-    <div class="ctx-item" data-action="open-tab">Open in new tab</div>
-    <div class="ctx-item" data-action="open-win">Open in side window</div>
-    <hr>
-    <div class="ctx-item" data-action="edit">Edit</div>
-    <div class="ctx-item danger" data-action="remove">Remove</div>
+  <div id="ctx-menu" class="hidden" role="menu">
+    <button class="ctx-item" role="menuitem" data-action="open-tab"><svg class="icon"><use href="#i-ext" /></svg>Open in new tab</button>
+    <button class="ctx-item" role="menuitem" data-action="open-win"><svg class="icon"><use href="#i-win" /></svg>Open in side window</button>
+    <button class="ctx-item" role="menuitem" data-action="signin"><svg class="icon"><use href="#i-login" /></svg>Sign in…</button>
+    <div class="ctx-sep"></div>
+    <button class="ctx-item" role="menuitem" data-action="edit"><svg class="icon"><use href="#i-pen" /></svg>Edit</button>
+    <button class="ctx-item danger" role="menuitem" data-action="remove"><svg class="icon"><use href="#i-trash" /></svg>Remove</button>
   </div>
 
-  <!-- Settings modal -->
-  <div id="settings-overlay" class="hidden">
-    <div id="settings-modal">
-      <div id="settings-header">
-        <h3>Settings</h3>
-        <button id="settings-close" title="Close">&#x2715;</button>
-      </div>
-      <div id="settings-body">
-        <section>
-          <h4>App Data</h4>
-          <button class="settings-btn" id="settings-export">
-            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Export Apps (JSON)
-          </button>
-          <button class="settings-btn" id="settings-import">
-            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Import Apps (JSON)
-          </button>
-          <input type="file" id="settings-import-file" accept=".json">
-          <button class="settings-btn danger" id="settings-reset">
-            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <polyline points="3 3 3 8 8 8" />
-            </svg>
-            Reset to Defaults
-          </button>
-        </section>
-        <section>
-          <h4>Keyboard Shortcut</h4>
-          <div class="shortcut-row">
-            <kbd>Alt</kbd><span class="shortcut-plus">+</span><kbd>Z</kbd>
-            <span class="shortcut-label">open / close sidebar</span>
-          </div>
-          <p>To change, visit the browser shortcuts page:</p>
-          <button class="settings-btn" id="settings-shortcut-open">
-            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            Configure Shortcuts
-          </button>
-        </section>
-        <section>
-          <h4>How to Use</h4>
-          <p>&#x2022; Click an icon to open it in the sidebar</p>
-          <p>&#x2022; Right-click an icon to edit, remove, or open elsewhere</p>
-          <p>&#x2022; Click &#x270E; to enter edit mode &amp; drag to reorder</p>
-          <p>&#x2022; Click &#x002B; to add a new app</p>
-        </section>
-        <section>
-          <h4>About</h4>
-          <p>Web App Sidebar &mdash; v1.0.0</p>
-        </section>
-      </div>
-    </div>
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <svg class="icon toast-icon"><use href="#i-check" /></svg><span id="toast-text"></span>
   </div>
-
-  <div id="toast" class="toast"></div>
+  <div id="tooltip" role="tooltip"></div>
   <script src="sidebar.js"></script>
 </body>
 

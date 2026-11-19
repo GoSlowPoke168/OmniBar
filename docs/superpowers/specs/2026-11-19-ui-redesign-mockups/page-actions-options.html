@@ -1,0 +1,142 @@
+<style>
+  .sb { width: 360px; height: 560px; display: flex; background: #1c1c1e; border-radius: 10px; overflow: hidden;
+        font-family: 'Segoe UI', system-ui, sans-serif; color: #ececec; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 0 auto; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; border-right: 1px solid #333; position: relative; }
+  .hdr { display: flex; align-items: center; gap: 6px; padding: 8px 6px 8px 12px; background: #242426; border-bottom: 1px solid #333; }
+  .hdr .name { font-weight: 600; font-size: 13px; }
+  .hdr .chip { font-size: 11px; color: #9a9a9e; display: flex; gap: 4px; align-items: center; }
+  .hdr .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .ib { width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center; color: #a1a1a6; }
+  .ib svg, .ab svg, .sbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .div { width: 1px; height: 16px; background: #3a3a3c; margin: 0 2px; }
+  .frame { flex: 1; background: #262624; padding: 16px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .line { height: 8px; border-radius: 4px; background: #3a3936; }
+  .bubble { align-self: flex-end; width: 60%; height: 34px; border-radius: 12px; background: #34332f; }
+  .chatbox { margin-top: auto; height: 46px; border-radius: 14px; border: 1px solid #44433f; background: #30302d; }
+  .strip { width: 56px; background: #242426; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 10px; }
+  .app { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: #fff; }
+  .app.on { outline: 2px solid #5b9cf6; outline-offset: 2px; }
+  .sfoot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .sbtn { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: #a1a1a6; }
+  .bar { display: flex; gap: 8px; padding: 8px 10px; background: #242426; border-top: 1px solid #333; }
+  .ab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border-radius: 8px;
+        font-size: 12.5px; font-weight: 600; color: #ececec; background: #2f2f32; border: 1px solid #3a3a3c; }
+  .ab.primary { background: #5b9cf6; border-color: #5b9cf6; color: #0d1b2e; }
+  .ctx { font-size: 11px; color: #9a9a9e; padding: 6px 12px 0; background: #242426; display: flex; gap: 5px; align-items: center; }
+  .ctx b { color: #ececec; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row2 { display: flex; gap: 6px; padding: 6px 10px 8px; background: #242426; border-bottom: 1px solid #333; }
+  .pill { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+          background: #2f2f32; border: 1px solid #3a3a3c; color: #ececec; }
+  .pill svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pill.primary { background: rgba(91,156,246,.16); border-color: rgba(91,156,246,.45); color: #9cc3ff; }
+  .fab { position: absolute; right: 12px; bottom: 74px; display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px;
+         background: #5b9cf6; color: #0d1b2e; font-size: 12.5px; font-weight: 700; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  .fab svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+
+<!-- shared icon defs -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-win" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+    <symbol id="i-ask" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z"/><path d="M10 9.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5"/><path d="M12 15.5h.01"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  </defs>
+</svg>
+
+<h2>Where should Summarize / Ask about page go?</h2>
+<p class="subtitle">All three keep your compact top bar and the icon strip as-is, with the icons redrawn as one consistent set. The only difference is where the two page actions live. Click the one you like.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="bottom-bar" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111">
+      <div class="sb">
+        <div class="main">
+          <div class="hdr">
+            <div class="info"><span class="name">Claude</span><span class="chip"><svg width="10" height="10" style="fill:none;stroke:currentColor;stroke-width:2"><use href="#i-lock"/></svg>claude.ai</span></div>
+            <div class="ib"><svg><use href="#i-link"/></svg></div><div class="ib"><svg><use href="#i-phone"/></svg></div>
+            <div class="div"></div>
+            <div class="ib"><svg><use href="#i-ext"/></svg></div><div class="ib"><svg><use href="#i-win"/></svg></div><div class="ib"><svg><use href="#i-refresh"/></svg></div><div class="ib"><svg><use href="#i-x"/></svg></div>
+          </div>
+          <div class="frame"><div class="bubble"></div><div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:82%"></div><div class="chatbox"></div></div>
+          <div class="ctx">Page: <b>Garbage – Wikipedia</b></div>
+          <div class="bar" style="border-top:none">
+            <div class="ab primary"><svg><use href="#i-sparkle"/></svg>Summarize page</div>
+            <div class="ab"><svg><use href="#i-ask"/></svg>Ask about page</div>
+          </div>
+        </div>
+        <div class="strip">
+          <div class="app on" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app" style="background:#444">X</div><div class="app" style="background:#4d6bfe">D</div>
+          <div class="sfoot"><div class="sbtn"><svg><use href="#i-plus"/></svg></div><div class="sbtn"><svg><use href="#i-pen"/></svg></div><div class="sbtn"><svg><use href="#i-gear"/></svg></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Action bar at the bottom</h3>
+      <p>Two big spelled-out buttons under the chat, with the page they'll use shown just above. Most obvious; costs ~70px of height.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="header-row" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111">
+      <div class="sb">
+        <div class="main">
+          <div class="hdr" style="border-bottom:none">
+            <div class="info"><span class="name">Claude</span><span class="chip"><svg width="10" height="10" style="fill:none;stroke:currentColor;stroke-width:2"><use href="#i-lock"/></svg>claude.ai</span></div>
+            <div class="ib"><svg><use href="#i-link"/></svg></div><div class="ib"><svg><use href="#i-phone"/></svg></div>
+            <div class="div"></div>
+            <div class="ib"><svg><use href="#i-ext"/></svg></div><div class="ib"><svg><use href="#i-win"/></svg></div><div class="ib"><svg><use href="#i-refresh"/></svg></div><div class="ib"><svg><use href="#i-x"/></svg></div>
+          </div>
+          <div class="row2">
+            <div class="pill primary"><svg><use href="#i-sparkle"/></svg>Summarize page</div>
+            <div class="pill"><svg><use href="#i-ask"/></svg>Ask about page</div>
+          </div>
+          <div class="frame"><div class="bubble"></div><div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:82%"></div><div class="chatbox"></div></div>
+        </div>
+        <div class="strip">
+          <div class="app on" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app" style="background:#444">X</div><div class="app" style="background:#4d6bfe">D</div>
+          <div class="sfoot"><div class="sbtn"><svg><use href="#i-plus"/></svg></div><div class="sbtn"><svg><use href="#i-pen"/></svg></div><div class="sbtn"><svg><use href="#i-gear"/></svg></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Pill row under the top bar</h3>
+      <p>Two labeled pills right under the app name. Visible but compact (~36px); everything you click stays at the top.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="floating" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111">
+      <div class="sb">
+        <div class="main">
+          <div class="hdr">
+            <div class="info"><span class="name">Claude</span><span class="chip"><svg width="10" height="10" style="fill:none;stroke:currentColor;stroke-width:2"><use href="#i-lock"/></svg>claude.ai</span></div>
+            <div class="ib"><svg><use href="#i-link"/></svg></div><div class="ib"><svg><use href="#i-ask"/></svg></div><div class="ib"><svg><use href="#i-phone"/></svg></div>
+            <div class="div"></div>
+            <div class="ib"><svg><use href="#i-ext"/></svg></div><div class="ib"><svg><use href="#i-win"/></svg></div><div class="ib"><svg><use href="#i-refresh"/></svg></div><div class="ib"><svg><use href="#i-x"/></svg></div>
+          </div>
+          <div class="frame"><div class="bubble"></div><div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:82%"></div><div class="chatbox"></div></div>
+          <div class="fab"><svg><use href="#i-sparkle"/></svg>Summarize</div>
+        </div>
+        <div class="strip">
+          <div class="app on" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app" style="background:#444">X</div><div class="app" style="background:#4d6bfe">D</div>
+          <div class="sfoot"><div class="sbtn"><svg><use href="#i-plus"/></svg></div><div class="sbtn"><svg><use href="#i-pen"/></svg></div><div class="sbtn"><svg><use href="#i-gear"/></svg></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Floating Summarize button</h3>
+      <p>One bright button floating over the chat; Ask stays a small icon up top. Takes no space, but can cover the AI's own buttons.</p>
+    </div>
+  </div>
+
+</div>
