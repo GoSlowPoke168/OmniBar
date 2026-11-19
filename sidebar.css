@@ -541,6 +541,13 @@ button {
   padding: 0 8px;
 }
 
+/* Narrowest sidebars: drop the icons so both labels stay readable */
+@media (max-width: 349px) {
+  #action-btns .btn .icon {
+    display: none;
+  }
+}
+
 /* Let the pointer reach #action-btns so its "why disabled" tooltip shows */
 #action-btns .btn:disabled {
   pointer-events: none;

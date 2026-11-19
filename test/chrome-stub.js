@@ -27,10 +27,13 @@
         { id: 'images', name: 'Google Image Search', url: fake('Images') }
       ]
     },
+    otherWindowTab: { url: 'https://example.com/', title: 'Other window' },
+    queries: 0,
+    lastFocusedWindow: 1,
     created: [],
     setActiveTab(tab) { this.activeTab = tab; },
-    fireTabActivated() { chrome.tabs.onActivated.fire({ tabId: 1 }); },
-    fireTabUpdated(info) { chrome.tabs.onUpdated.fire(1, info, {}); }
+    fireTabActivated() { chrome.tabs.onActivated.fire({ tabId: 1, windowId: 1 }); },
+    fireTabUpdated(info) { chrome.tabs.onUpdated.fire(1, info, { id: 1, active: true, windowId: 1 }); }
   };
   window.__stub = stub;
 
@@ -40,8 +43,10 @@
       getManifest: () => ({ version: '1.0.0' }),
       getURL: p => `${location.origin}/${p}`,
       sendMessage(msg, cb) {
-        const res = msg.type === 'get-active-tab-url' ? { ...stub.activeTab } : { status: 'ok' };
-        return both(res, cb);
+        if (msg.type !== 'get-active-tab-url') return both({ status: 'ok' }, cb);
+        // Like background.js: answers for the last-focused window, not necessarily ours
+        stub.queries++;
+        return both({ ...(stub.lastFocusedWindow === 2 ? stub.otherWindowTab : stub.activeTab) }, cb);
       }
     },
     storage: {
@@ -53,6 +58,11 @@
     commands: { getAll: cb => both([{ name: 'toggle-sidebar', shortcut: 'Alt+Z' }], cb) },
     tabs: {
       create: (opts, cb) => { stub.created.push(opts.url); return both({ id: 9, ...opts }, cb); },
+      query: (qry, cb) => {
+        stub.queries++;
+        const tab = qry.windowId === 2 ? stub.otherWindowTab : stub.activeTab;
+        return both([{ id: 1, windowId: qry.windowId ?? 1, active: true, ...tab }], cb);
+      },
       onActivated: listeners(),
       onUpdated: listeners()
     },

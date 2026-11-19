@@ -286,6 +286,50 @@
     } finally { window.confirm = realConfirm; }
   });
 
+  // Final review fixes
+  uiCheck('staleConfirmClosedByStripClick', async () => {
+    const before = apps.map(a => a.id).join();
+    q('#btn-settings').click();
+    q('#settings-reset').click();
+    await sleep(10);
+    appIcon(0).click();
+    await sleep(150);
+    assert(!confirmResolve && !visible(q('#confirm-overlay')), 'confirm still pending after strip click');
+    q('#btn-add').click();
+    assert(!visible(q('#confirm-overlay')), 'stale confirm shown over add dialog');
+    assert(apps.map(a => a.id).join() === before, 'apps changed');
+  });
+  uiCheck('actionLabelsFit', async () => {
+    await openFirst();
+    document.querySelectorAll('#action-btns .btn span').forEach(s => {
+      assert(s.scrollWidth <= s.clientWidth, `"${s.textContent}" cut off at ${innerWidth}px`);
+    });
+  });
+  uiCheck('pageContextFollowsOwnWindow', async () => {
+    await openFirst();
+    __stub.lastFocusedWindow = 2;
+    try {
+      chrome.tabs.onActivated.fire({ tabId: 5, windowId: 2 });
+      await sleep(30);
+      assert(q('#action-page').textContent === 'Page: Garbage – Wikipedia', `followed other window: ${q('#action-page').textContent}`);
+      let sent = null;
+      $frame.contentWindow.postMessage = msg => { sent = msg; };
+      q('#act-summarize').click();
+      await sleep(30);
+      assert(sent?.text.includes(wiki.url), 'Summarize used the other window\'s page');
+      const n = __stub.queries;
+      chrome.tabs.onUpdated.fire(6, { title: 'Background tab (3)' }, { id: 6, active: false, windowId: 1 });
+      await sleep(30);
+      assert(__stub.queries === n, 'background-tab title change triggered a refresh');
+    } finally { __stub.lastFocusedWindow = 1; }
+  });
+  uiCheck('focusKeptAfterOpen', async () => {
+    appIcon(0).focus();
+    appIcon(0).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await sleep(30);
+    assert(document.activeElement?.dataset?.id === apps[0].id, `focus on ${document.activeElement?.tagName}`);
+  });
+
   // Task 8
   uiCheck('ctxMenuIcons', () => {
     showCtxMenu({ clientX: 50, clientY: 50 }, apps[0]);

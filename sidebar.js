@@ -22,6 +22,7 @@ let dragSrcIdx = null;
 let ctxApp = null;
 let loadTimer = null;
 let spinnerTimer = null;
+let windowId = null;
 
 // DOM refs
 const $ = id => document.getElementById(id);
@@ -54,7 +55,6 @@ const $panelUrlText = $('panel-url-text');
 
 // Init
 async function init() {
-  let windowId = null;
   try {
     const win = await chrome.windows.getCurrent();
     windowId = win?.id;
@@ -97,6 +97,11 @@ function hostOf(url) {
 }
 function activeApp() {
   return apps.find(a => a.id === activeId);
+}
+// The active tab of this sidebar's own window (not the last-focused window)
+function getActiveTab(cb) {
+  const query = windowId ? { active: true, windowId } : { active: true, currentWindow: true };
+  chrome.tabs.query(query, tabs => { void chrome.runtime.lastError; cb(tabs?.[0]); });
 }
 function save() {
   chrome.storage.local.set({ apps, defaultAppId });
@@ -151,6 +156,7 @@ function syncContentState() {
 
 // Render app icons
 function renderStrip() {
+  const focusedId = document.activeElement?.closest?.('.app-icon')?.dataset.id;
   $icons.innerHTML = '';
   $icons.classList.toggle('edit-mode', editMode);
   $('btn-edit').classList.toggle('is-active', editMode);
@@ -207,6 +213,7 @@ function renderStrip() {
 
     $icons.appendChild(el);
   });
+  if (focusedId) $icons.querySelector(`[data-id="${focusedId}"]`)?.focus();
   syncContentState();
 }
 
@@ -312,8 +319,7 @@ function closePanel() {
 
 // Action bar: shows which page Summarize / Ask will use
 function refreshPageContext() {
-  chrome.runtime.sendMessage({ type: 'get-active-tab-url' }, res => {
-    void chrome.runtime.lastError;
+  getActiveTab(res => {
     const url = res?.url ?? '';
     const isWeb = /^https?:\/\//.test(url);
     $actionTitle.textContent = isWeb ? (res.title || hostOf(url)) : 'none';
@@ -370,7 +376,7 @@ let insertTimer = null;
 function sendPageToApp(buildPrompt, send) {
   const app = activeApp();
   if (!app) return;
-  chrome.runtime.sendMessage({ type: 'get-active-tab-url' }, res => {
+  getActiveTab(res => {
     const url = res?.url ?? '';
     if (!/^https?:\/\//.test(url)) {
       showToast('Open a regular web page first.', 'error');
@@ -408,6 +414,7 @@ function openSheet(id, opener = null) {
   opener?.classList.add('is-active');
 }
 function closeSheet(immediate = false) {
+  confirmResolve?.(false);
   if (!openSheetId) return;
   const id = openSheetId;
   sheetOpener?.classList.remove('is-active');
@@ -679,7 +686,7 @@ function bindListeners() {
   };
   $('hdr-copyurl').addEventListener('click', () => {
     const btn = $('hdr-copyurl');
-    chrome.runtime.sendMessage({ type: 'get-active-tab-url' }, (res) => {
+    getActiveTab(res => {
       if (res && res.url) {
         const text = `Here is the link to the page I am on:\n${res.url}`;
         navigator.clipboard.writeText(text)
@@ -724,9 +731,11 @@ function bindListeners() {
   $('act-ask').addEventListener('click', () => {
     sendPageToApp(url => `Use the webpage at <pageUrl>${url}</pageUrl> as context for my question: `, false);
   });
-  chrome.tabs.onActivated.addListener(() => { if (panelOpen) refreshPageContext(); });
-  chrome.tabs.onUpdated.addListener((id, info) => {
-    if (panelOpen && (info.title || info.status === 'complete')) refreshPageContext();
+  chrome.tabs.onActivated.addListener(info => {
+    if (panelOpen && info.windowId === windowId) refreshPageContext();
+  });
+  chrome.tabs.onUpdated.addListener((id, info, tab) => {
+    if (panelOpen && tab?.active && tab.windowId === windowId && (info.title || info.status === 'complete')) refreshPageContext();
   });
 
   // Sheets

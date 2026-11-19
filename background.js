@@ -87,15 +87,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return;
   }
 
-  // Get active tab URL (sidebar -> background -> reply)
-  if (msg.type === 'get-active-tab-url') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      sendResponse({ url: tab?.url ?? '', title: tab?.title ?? '' });
-    });
-    return true;
-  }
-
 });
 
 chrome.windows.onRemoved.addListener((windowId) => {
