@@ -340,6 +340,44 @@
     assert(document.activeElement?.dataset?.id === apps[0].id, `focus on ${document.activeElement?.tagName}`);
   });
 
+  // Icon cache
+  async function withFakeFavicons(fn) {
+    const realFetch = window.fetch;
+    let calls = 0;
+    const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), c => c.charCodeAt(0));
+    window.fetch = (url, opts) => {
+      if (String(url).includes('/s2/favicons')) { calls++; return Promise.resolve(new Response(new Blob([png], { type: 'image/png' }))); }
+      return realFetch(url, opts);
+    };
+    try { await fn(() => calls); } finally { window.fetch = realFetch; }
+  }
+  uiCheck('iconsCachedAndReused', () => withFakeFavicons(async calls => {
+    iconCache = {};
+    await refreshIcons();
+    const host = new URL(apps[0].url).hostname;
+    assert(__stub.storage.icons?.[host]?.data?.startsWith('data:image/png'), 'icon not saved to storage');
+    renderStrip();
+    assert(appIcon(0).querySelector('img').src.startsWith('data:'), 'strip not using cached icon');
+    const n = calls();
+    await refreshIcons();
+    assert(calls() === n, 'fresh icons were fetched again');
+  }));
+  uiCheck('staleIconsRefetchedAndPruned', () => withFakeFavicons(async calls => {
+    const host = new URL(apps[0].url).hostname;
+    iconCache = { [host]: { data: 'data:image/png;base64,AA==', at: Date.now() - 8 * 864e5 }, 'gone.example': { data: 'data:,', at: Date.now() } };
+    await refreshIcons();
+    assert(calls() >= 1 && iconCache[host].at > Date.now() - 60000, 'stale icon not refreshed');
+    assert(!('gone.example' in iconCache) && !('gone.example' in __stub.storage.icons), 'removed app icon not pruned');
+  }));
+  uiCheck('privacyLinkInSettings', () => {
+    q('#btn-settings').click();
+    const link = q('#settings-privacy');
+    assert(link && link.textContent === 'Privacy policy', 'no privacy link');
+    __stub.created.length = 0;
+    link.click();
+    assert(__stub.created[0] === 'https://github.com/GoSlowPoke168/OmniBar/blob/main/PRIVACY.md', `opened ${__stub.created[0]}`);
+  });
+
   // Task 8
   uiCheck('ctxMenuIcons', () => {
     showCtxMenu({ clientX: 50, clientY: 50 }, apps[0]);

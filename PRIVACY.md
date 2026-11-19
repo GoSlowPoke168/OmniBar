@@ -10,6 +10,7 @@ All of this stays on your device, in your browser's extension storage. It is nev
 
 - **Your app list:** each app's name and web address, its order, and whether you turned on desktop view for it.
 - **Your settings:** your Default page and your Appearance choice (System, Light or Dark).
+- **Your apps' icons**, saved after they're first downloaded so the sidebar opens quickly.
 - **Which browser windows have the sidebar open**, so the keyboard shortcut can open and close it correctly. This is cleared when the browser closes.
 
 ## What OmniBar reads
@@ -23,7 +24,7 @@ OmniBar does not read or change pages in your normal browser tabs.
 
 ## Who else receives data
 
-- **Google's favicon service** (`www.google.com/s2/favicons`) receives the domain of each app in your list (for example, `chatgpt.com`) so OmniBar can show its icon. No other information is sent. See [Google's Privacy Policy](https://policies.google.com/privacy).
+- **Google's favicon service** (`www.google.com/s2/favicons`) receives the domain of each app in your list (for example, `chatgpt.com`) so OmniBar can download its icon. This happens when you add an app and about once a week after that. No other information is sent. See [Google's Privacy Policy](https://policies.google.com/privacy).
 - **The websites you open in the sidebar** load directly from those sites, just like in a normal tab, and handle your data under their own privacy policies. This includes anything you type into them and any page address you send with Summarize page or Ask about page.
 
 OmniBar does not sell, rent or share your data with anyone else, does not use it for advertising, and no person reads it.

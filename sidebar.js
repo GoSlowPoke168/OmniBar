@@ -64,12 +64,14 @@ async function init() {
     chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
   }
 
-  const stored = await chrome.storage.local.get(['apps', 'defaultAppId']);
+  const stored = await chrome.storage.local.get(['apps', 'defaultAppId', 'icons']);
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
   defaultAppId = stored.defaultAppId ?? null;
+  iconCache = stored.icons ?? {};
   syncDefaultAppId();
   renderStrip();
   bindListeners();
+  refreshIcons();
 
   const defaultApp = apps.find(a => a.id === defaultAppId);
   if (defaultApp) openApp(defaultApp);
@@ -87,10 +89,48 @@ async function init() {
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
+// App icons: fetched from Google's favicon service once, then kept in local storage
+let iconCache = {};
+const ICON_MAX_AGE = 7 * 864e5;
+function iconHost(url) {
+  try { return new URL(url).hostname; } catch { return ''; }
+}
+function faviconUrl(host) {
+  return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+}
 function getFavicon(url) {
-  try {
-    return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`;
-  } catch { return ''; }
+  const host = iconHost(url);
+  return host ? iconCache[host]?.data ?? faviconUrl(host) : '';
+}
+function blobToDataUrl(blob) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+async function refreshIcons() {
+  const hosts = [...new Set(apps.map(a => iconHost(a.url)).filter(Boolean))];
+  let changed = false;
+  await Promise.all(hosts.map(async host => {
+    if (Date.now() - (iconCache[host]?.at ?? 0) < ICON_MAX_AGE) return;
+    try {
+      const res = await fetch(faviconUrl(host));
+      if (!res.ok) return;
+      const data = await blobToDataUrl(await res.blob());
+      iconCache[host] = { data, at: Date.now() };
+      changed = true;
+      $icons.querySelectorAll(`.app-icon[data-host="${CSS.escape(host)}"]`).forEach(el => {
+        const [img, fb] = el.children;
+        img.style.display = fb.style.display = '';
+        img.src = data;
+      });
+    } catch (_) { /* offline: keep the old icon */ }
+  }));
+  for (const host of Object.keys(iconCache)) {
+    if (!hosts.includes(host)) { delete iconCache[host]; changed = true; }
+  }
+  if (changed) chrome.storage.local.set({ icons: iconCache });
 }
 function hostOf(url) {
   try { return new URL(url).hostname; } catch { return url; }
@@ -105,6 +145,7 @@ function getActiveTab(cb) {
 }
 function save() {
   chrome.storage.local.set({ apps, defaultAppId });
+  refreshIcons();
 }
 function syncDefaultAppId() {
   if (!apps.some(a => a.id === defaultAppId)) defaultAppId = null;
@@ -165,6 +206,7 @@ function renderStrip() {
     const el = document.createElement('div');
     el.className = 'app-icon' + (panelOpen && app.id === activeId ? ' active' : '');
     el.dataset.id = app.id;
+    el.dataset.host = iconHost(app.url);
     el.dataset.idx = i;
     el.dataset.tip = `${app.name} — right-click for more`;
     el.draggable = true;
@@ -784,6 +826,11 @@ function bindListeners() {
     e.target.value = '';
   });
   $('settings-reset').addEventListener('click', resetToDefaults);
+
+  $('settings-privacy').addEventListener('click', e => {
+    e.preventDefault();
+    openInTab('https://github.com/GoSlowPoke168/OmniBar/blob/main/PRIVACY.md');
+  });
 
   $('settings-shortcut-open').addEventListener('click', e => {
     e.preventDefault();
