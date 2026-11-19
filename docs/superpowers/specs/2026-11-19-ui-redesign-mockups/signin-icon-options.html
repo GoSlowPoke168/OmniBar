@@ -1,0 +1,71 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+  .t-light { --bg:#ffffff; --surface:#f4f4f6; --raised:#ffffff; --border:#e2e2e6; --text:#1c1c1e; --text2:#55555c; --text3:#8a8a90;
+             --accent:#2f6fe4; --on-accent:#ffffff; --accent-soft:rgba(47,111,228,.10); }
+  .t-dark  { --bg:#1c1c1e; --surface:#242426; --raised:#2f2f32; --border:#3a3a3c; --text:#ececec; --text2:#b4b4b8; --text3:#8e8e93;
+             --accent:#5b9cf6; --on-accent:#0d1b2e; --accent-soft:rgba(91,156,246,.16); }
+  .stage { background: #d9d9de; padding: 16px; border-radius: 12px; display: flex; justify-content: center; }
+  .stage.dk { background: #0e0e10; }
+  .panel { width: 268px; height: 470px; background: var(--bg); color: var(--text); border-radius: 10px; font-family: 'Geist', sans-serif;
+           display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 18px;
+           box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+  .panel h4 { font-size: 16px; font-weight: 700; margin: 0; }
+  .panel p { font-size: 13px; color: var(--text2); line-height: 1.5; margin: 0; }
+  .panel ol { text-align: left; font-size: 13px; color: var(--text2); line-height: 1.6; padding-left: 18px; margin: 0; }
+  .panel ol b, .panel p b { color: var(--text); }
+  .wide { width: 100%; max-width: 210px; padding: 9px; border-radius: 8px; font-weight: 600; font-size: 13.5px; background: var(--raised); border: 1px solid var(--border); }
+  .wide.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .small { font-size: 12px !important; } .small a { color: var(--accent); font-weight: 600; }
+  .logo { position: relative; width: 52px; height: 52px; border-radius: 14px; background: #4d6bfe; color: #fff; display: grid; place-items: center;
+          font-size: 22px; font-weight: 700; }
+  .lockbadge { position: absolute; right: -6px; bottom: -6px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg);
+               display: grid; place-items: center; box-shadow: 0 0 0 1px var(--border); }
+  .lockbadge svg { width: 13px; height: 13px; fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .loginico { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+  .loginico svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></symbol>
+</defs></svg>
+
+<h2>Sign-in panel: which top?</h2>
+<p class="subtitle">The emoji is gone in all three. Click the one you like.</p>
+
+<div class="cards">
+  <div class="card" data-choice="no-icon" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="stage"><div class="panel t-light">
+      <h4>Sign in to DeepSeek</h4>
+      <p>DeepSeek needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+      <ol><li>Click <b>Sign in</b> to open DeepSeek in a separate window.</li><li>Sign in there, then close that window.</li><li>DeepSeek reloads here.</li></ol>
+      <div class="wide primary">Sign in</div><div class="wide">Refresh</div>
+      <p class="small">Or <a>open DeepSeek in a new tab</a>, sign in, then come back and click <b>Refresh</b>.</p>
+    </div></div></div>
+    <div class="card-body"><h3>A. No icon</h3><p>Just the heading and steps. Cleanest and calmest.</p></div>
+  </div>
+
+  <div class="card" data-choice="app-logo" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="stage"><div class="panel t-light">
+      <div class="logo">D<span class="lockbadge"><svg><use href="#i-lock"/></svg></span></div>
+      <h4>Sign in to DeepSeek</h4>
+      <p>DeepSeek needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+      <ol><li>Click <b>Sign in</b> to open DeepSeek in a separate window.</li><li>Sign in there, then close that window.</li><li>DeepSeek reloads here.</li></ol>
+      <div class="wide primary">Sign in</div><div class="wide">Refresh</div>
+      <p class="small">Or <a>open DeepSeek in a new tab</a>, sign in, then come back and click <b>Refresh</b>.</p>
+    </div></div></div>
+    <div class="card-body"><h3>B. The app's own logo + small lock</h3><p>Uses the same logo as in your icon strip (shown here as a letter). Instantly shows which app needs signing in.</p></div>
+  </div>
+
+  <div class="card" data-choice="login-icon" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="stage dk"><div class="panel t-dark">
+      <div class="loginico"><svg><use href="#i-login"/></svg></div>
+      <h4>Sign in to DeepSeek</h4>
+      <p>DeepSeek needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+      <ol><li>Click <b>Sign in</b> to open DeepSeek in a separate window.</li><li>Sign in there, then close that window.</li><li>DeepSeek reloads here.</li></ol>
+      <div class="wide primary">Sign in</div><div class="wide">Refresh</div>
+      <p class="small">Or <a>open DeepSeek in a new tab</a>, sign in, then come back and click <b>Refresh</b>.</p>
+    </div></div></div>
+    <div class="card-body"><h3>C. Clean "sign in" icon</h3><p>A simple arrow-into-door icon in a soft circle (shown in dark mode). Generic but tidy.</p></div>
+  </div>
+</div>

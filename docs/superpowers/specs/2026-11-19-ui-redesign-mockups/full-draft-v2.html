@@ -1,0 +1,226 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+  .t-dark  { --bg:#1c1c1e; --surface:#242426; --raised:#2f2f32; --border:#3a3a3c; --text:#ececec; --text2:#b4b4b8; --text3:#8e8e93;
+             --accent:#5b9cf6; --on-accent:#0d1b2e; --accent-soft:rgba(91,156,246,.16); --danger:#ff8a80; --chat:#262624; --chatline:#3a3936; }
+  .t-light { --bg:#ffffff; --surface:#f4f4f6; --raised:#ffffff; --border:#e2e2e6; --text:#1c1c1e; --text2:#55555c; --text3:#8a8a90;
+             --accent:#2f6fe4; --on-accent:#ffffff; --accent-soft:rgba(47,111,228,.10); --danger:#d93025; --chat:#faf9f5; --chatline:#e8e6df; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+  .shot h3 { margin: 10px 0 2px; font-size: 15px; }
+  .shot p { margin: 0; font-size: 13px; opacity: .75; }
+  .stage { background: #0e0e10; padding: 16px; border-radius: 12px; display: flex; justify-content: center; }
+  .stage.lightbg { background: #d9d9de; }
+  .sb { width: 320px; height: 560px; display: flex; position: relative; background: var(--bg); color: var(--text); border-radius: 10px; overflow: hidden;
+        font-family: 'Geist', sans-serif; font-size: 13.5px; box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--border); position: relative; }
+  .hdr { display: flex; align-items: center; gap: 2px; padding: 8px 6px 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .name { font-weight: 600; font-size: 14px; }
+  .chip { font-size: 11.5px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
+  .ib { width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center; color: var(--text2); }
+  .ib.hover { background: var(--raised); color: var(--text); }
+  .div { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
+  svg.i { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .frame { flex: 1; background: var(--chat); padding: 16px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .line { height: 8px; border-radius: 4px; background: var(--chatline); }
+  .bubble { align-self: flex-end; width: 60%; height: 34px; border-radius: 12px; background: var(--chatline); }
+  .chatbox { margin-top: auto; height: 46px; border-radius: 14px; border: 1px solid var(--chatline); background: var(--bg); }
+  .ctx { font-size: 12px; color: var(--text3); padding: 8px 10px 0; background: var(--surface); border-top: 1px solid var(--border);
+         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ctx b { color: var(--text); font-weight: 600; }
+  .bar { display: flex; gap: 6px; padding: 8px 10px 10px; background: var(--surface); }
+  .ab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 4px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        background: var(--raised); border: 1px solid var(--border); white-space: nowrap; }
+  .ab.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .strip { width: 52px; background: var(--surface); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 10px; }
+  .app { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: #fff; position: relative; }
+  .app.on { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sfoot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .sbtn { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--text2); }
+  .sbtn.done { width: 42px; height: 26px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; font-weight: 700; }
+  .badge { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff;
+           display: grid; place-items: center; font-size: 10px; font-weight: 700; border: 2px solid var(--surface); }
+  .grab { position: absolute; left: -9px; color: var(--text3); font-size: 10px; letter-spacing: -1px; }
+  .overlay { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 14px; }
+  .sheet { width: 100%; max-height: 100%; overflow: hidden; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); }
+  .s-hdr { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; }
+  .s-hdr .t { font-size: 16px; font-weight: 700; }
+  .s-body { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); margin-bottom: 7px; }
+  .seg { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+  .seg span { flex: 1; text-align: center; padding: 6px 0; border-radius: 6px; font-size: 13px; color: var(--text2); }
+  .seg span.on { background: var(--raised); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .sel { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); }
+  .help { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin-top: 6px; }
+  .row { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); margin-bottom: 6px; }
+  .row.danger { color: var(--danger); }
+  .kbd { display: inline-block; padding: 2px 7px; border-radius: 5px; background: var(--surface); border: 1px solid var(--border); font-size: 12px; font-weight: 600; }
+  .link { color: var(--accent); font-weight: 600; font-size: 12.5px; }
+  .field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text2); }
+  .input { padding: 9px 11px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); font-weight: 400; color: var(--text); font-size: 13.5px; }
+  .input.focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .input.ph { color: var(--text3); }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn { padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; background: var(--raised); border: 1px solid var(--border); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .menu { position: absolute; right: 58px; top: 92px; width: 190px; background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.35); font-size: 13px; }
+  .mi { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 6px; }
+  .mi.hover { background: var(--surface); }
+  .mi.danger { color: var(--danger); }
+  .mi svg.i { color: var(--text2); } .mi.danger svg.i { color: var(--danger); }
+  .sep { height: 1px; background: var(--border); margin: 4px 2px; }
+  .toast { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); display: flex; align-items: center; gap: 7px; padding: 8px 14px;
+           border-radius: 999px; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+  .signin { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 18px; }
+  .signin .ico { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+  .signin .ico svg.i { width: 22px; height: 22px; }
+  .signin h4 { font-size: 16px; font-weight: 700; margin: 0; }
+  .signin p { font-size: 13px; color: var(--text2); line-height: 1.5; margin: 0; }
+  .signin ol { text-align: left; font-size: 13px; color: var(--text2); line-height: 1.6; padding-left: 18px; margin: 0; }
+  .signin ol b, .signin p b { color: var(--text); }
+  .wide { width: 100%; max-width: 210px; padding: 9px; border-radius: 8px; font-weight: 600; background: var(--raised); border: 1px solid var(--border); }
+  .wide.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .small { font-size: 12px !important; }
+  .small a { color: var(--accent); font-weight: 600; }
+</style>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-win" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+  <symbol id="i-ask" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z"/><path d="M10 9.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5"/><path d="M12 15.5h.01"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V8M6 13l6-6 6 6M4 4h16"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</defs></svg>
+
+<h2>OmniBar redesign — draft v2</h2>
+<p class="subtitle">Geist font, one consistent icon set, brighter text, light + dark themes, and the new Summarize / Ask action bar. Tell me in the terminal what to change; refer to screens by number.</p>
+
+<div class="grid">
+
+  <!-- 1. Main, dark -->
+  <div class="shot"><div class="stage"><div class="sb t-dark">
+    <div class="main">
+      <div class="hdr"><div class="info"><span class="name">Claude</span><span class="chip"><svg class="i" style="width:10px;height:10px"><use href="#i-lock"/></svg>claude.ai</span></div>
+        <div class="ib"><svg class="i"><use href="#i-link"/></svg></div><div class="ib"><svg class="i"><use href="#i-phone"/></svg></div><div class="div"></div>
+        <div class="ib"><svg class="i"><use href="#i-ext"/></svg></div><div class="ib"><svg class="i"><use href="#i-win"/></svg></div><div class="ib"><svg class="i"><use href="#i-refresh"/></svg></div><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+      <div class="frame"><div class="bubble"></div><div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:84%"></div><div class="line" style="width:60%"></div><div class="chatbox"></div></div>
+      <div class="ctx">Page: <b>Garbage – Wikipedia</b></div>
+      <div class="bar"><div class="ab primary"><svg class="i"><use href="#i-sparkle"/></svg>Summarize page</div><div class="ab"><svg class="i"><use href="#i-ask"/></svg>Ask about page</div></div>
+    </div>
+    <div class="strip"><div class="app on" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app" style="background:#555">X</div><div class="app" style="background:#4d6bfe">D</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>1. Main sidebar — dark</h3><p>Same compact top bar, redrawn icons. Action bar at the bottom shows which page it'll use.</p></div>
+
+  <!-- 2. Main, light -->
+  <div class="shot"><div class="stage lightbg"><div class="sb t-light">
+    <div class="main">
+      <div class="hdr"><div class="info"><span class="name">ChatGPT</span><span class="chip"><svg class="i" style="width:10px;height:10px"><use href="#i-lock"/></svg>chatgpt.com</span></div>
+        <div class="ib"><svg class="i"><use href="#i-link"/></svg></div><div class="ib"><svg class="i"><use href="#i-phone"/></svg></div><div class="div"></div>
+        <div class="ib"><svg class="i"><use href="#i-ext"/></svg></div><div class="ib hover"><svg class="i"><use href="#i-win"/></svg></div><div class="ib"><svg class="i"><use href="#i-refresh"/></svg></div><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+      <div class="frame"><div class="bubble"></div><div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:84%"></div><div class="chatbox"></div></div>
+      <div class="ctx">Page: <b>Garbage – Wikipedia</b></div>
+      <div class="bar"><div class="ab primary"><svg class="i"><use href="#i-sparkle"/></svg>Summarize page</div><div class="ab"><svg class="i"><use href="#i-ask"/></svg>Ask about page</div></div>
+    </div>
+    <div class="strip"><div class="app" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app on" style="background:#10a37f">O</div><div class="app" style="background:#555">X</div><div class="app" style="background:#4d6bfe">D</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>2. Main sidebar — light</h3><p>Same layout when Chrome (or the Appearance setting) is light. Hovered icons get a soft background.</p></div>
+
+  <!-- 3. Settings, dark -->
+  <div class="shot"><div class="stage"><div class="sb t-dark">
+    <div class="main"><div class="frame"></div>
+      <div class="overlay"><div class="sheet">
+        <div class="s-hdr"><span class="t">Settings</span><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+        <div class="s-body">
+          <div><div class="lbl">Appearance</div><div class="seg"><span class="on">System</span><span>Light</span><span>Dark</span></div></div>
+          <div><div class="lbl">Default page</div><div class="sel">Claude <svg class="i"><use href="#i-chev"/></svg></div><div class="help">Opens automatically when the sidebar opens.</div></div>
+          <div><div class="lbl">Apps</div>
+            <div class="row"><svg class="i"><use href="#i-down"/></svg>Export apps</div><div class="row"><svg class="i"><use href="#i-up"/></svg>Import apps</div><div class="row danger"><svg class="i"><use href="#i-reset"/></svg>Reset to defaults</div></div>
+          <div><div class="lbl">Shortcut</div><span class="kbd">Alt</span> + <span class="kbd">Z</span> <span class="help" style="margin-left:4px">opens / closes the sidebar</span> · <span class="link">Change</span></div>
+          <div class="help" style="margin:0">OmniBar 1.0.0</div>
+        </div>
+      </div></div>
+    </div>
+    <div class="strip"><div class="app" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn" style="color:var(--accent)"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>3. Settings</h3><p>New Appearance switch at the top. Tidier sections with icons; "How to use" tips move into tooltips. Version at the bottom.</p></div>
+
+  <!-- 4. Add app dialog, light -->
+  <div class="shot"><div class="stage lightbg"><div class="sb t-light">
+    <div class="main"><div class="frame"></div>
+      <div class="overlay" style="background:rgba(0,0,0,.25)"><div class="sheet">
+        <div class="s-hdr"><span class="t">Add app</span><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+        <div class="s-body">
+          <label class="field">Name<div class="input">Perplexity</div></label>
+          <label class="field">Web address<div class="input focus">perplexity.ai</div><span class="help" style="font-weight:400;margin:0">You can leave out https://</span></label>
+          <div class="actions"><div class="btn">Cancel</div><div class="btn primary">Add app</div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="strip"><div class="app" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div>
+      <div class="sfoot"><div class="sbtn" style="color:var(--accent)"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>4. Add / edit app</h3><p>Clear labels, a focus ring on the active field, and a hint that https:// is optional. Button says what it does.</p></div>
+
+  <!-- 5. Context menu + toast, dark -->
+  <div class="shot"><div class="stage"><div class="sb t-dark">
+    <div class="main">
+      <div class="hdr"><div class="info"><span class="name">Gemini</span><span class="chip">gemini.google.com</span></div>
+        <div class="ib"><svg class="i"><use href="#i-link"/></svg></div><div class="ib"><svg class="i"><use href="#i-phone"/></svg></div><div class="div"></div>
+        <div class="ib"><svg class="i"><use href="#i-ext"/></svg></div><div class="ib"><svg class="i"><use href="#i-win"/></svg></div><div class="ib"><svg class="i"><use href="#i-refresh"/></svg></div><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+      <div class="frame"><div class="line" style="width:90%"></div><div class="line" style="width:70%"></div><div class="chatbox"></div></div>
+      <div class="ctx">Page: <b>Garbage – Wikipedia</b></div>
+      <div class="bar"><div class="ab primary"><svg class="i"><use href="#i-sparkle"/></svg>Summarize page</div><div class="ab"><svg class="i"><use href="#i-ask"/></svg>Ask about page</div></div>
+      <div class="toast"><svg class="i"><use href="#i-check"/></svg>Apps imported</div>
+    </div>
+    <div class="menu">
+      <div class="mi hover"><svg class="i"><use href="#i-ext"/></svg>Open in new tab</div><div class="mi"><svg class="i"><use href="#i-win"/></svg>Open in side window</div><div class="mi"><svg class="i"><use href="#i-key"/></svg>Sign in…</div>
+      <div class="sep"></div><div class="mi"><svg class="i"><use href="#i-pen"/></svg>Edit</div><div class="mi danger"><svg class="i"><use href="#i-trash"/></svg>Remove</div>
+    </div>
+    <div class="strip"><div class="app" style="background:#d97757">C</div><div class="app on" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app" style="background:#555">X</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>5. Right-click menu + notification</h3><p>Menu items get matching icons. Notifications become a small pill with a check (or ✕ for errors).</p></div>
+
+  <!-- 6. Sign-in panel, light -->
+  <div class="shot"><div class="stage lightbg"><div class="sb t-light">
+    <div class="main">
+      <div class="hdr"><div class="info"><span class="name">DeepSeek</span><span class="chip">chat.deepseek.com</span></div>
+        <div class="ib"><svg class="i"><use href="#i-link"/></svg></div><div class="ib"><svg class="i"><use href="#i-phone"/></svg></div><div class="div"></div>
+        <div class="ib"><svg class="i"><use href="#i-ext"/></svg></div><div class="ib"><svg class="i"><use href="#i-win"/></svg></div><div class="ib"><svg class="i"><use href="#i-refresh"/></svg></div><div class="ib"><svg class="i"><use href="#i-x"/></svg></div></div>
+      <div class="signin">
+        <div class="ico"><svg class="i"><use href="#i-key"/></svg></div>
+        <h4>Sign in to DeepSeek</h4>
+        <p>DeepSeek needs you to sign in, but its sign-in page can't load inside the sidebar.</p>
+        <ol><li>Click <b>Sign in</b> to open DeepSeek in a separate window.</li><li>Sign in there, then close that window.</li><li>DeepSeek reloads here.</li></ol>
+        <div class="wide primary">Sign in</div><div class="wide">Refresh</div>
+        <p class="small">Or <a>open DeepSeek in a new tab</a>, sign in, then come back and click <b>Refresh</b>.</p>
+      </div>
+    </div>
+    <div class="strip"><div class="app" style="background:#d97757">C</div><div class="app" style="background:#4b7bec">G</div><div class="app" style="background:#10a37f">O</div><div class="app on" style="background:#4d6bfe">D</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>6. Sign-in help</h3><p>Same steps, with a drawn key icon instead of an emoji, a clear main button, and the new-tab note underneath.</p></div>
+
+  <!-- 7. Edit mode, dark -->
+  <div class="shot"><div class="stage"><div class="sb t-dark">
+    <div class="main"><div class="frame" style="align-items:center;justify-content:center;gap:6px;background:var(--bg)">
+      <div style="font-size:14px;font-weight:600">Editing apps</div>
+      <div style="font-size:12.5px;color:var(--text2);text-align:center;max-width:200px;line-height:1.5">Drag icons to reorder. Tap ✕ to remove. Click the pencil again when finished.</div>
+    </div></div>
+    <div class="strip">
+      <div class="app" style="background:#d97757"><span class="badge">✕</span>C</div><div class="app" style="background:#4b7bec"><span class="badge">✕</span>G</div><div class="app" style="background:#10a37f;outline:2px dashed var(--text3);outline-offset:2px;opacity:.6"><span class="badge">✕</span>O</div><div class="app" style="background:#555"><span class="badge">✕</span>X</div><div class="app" style="background:#4d6bfe"><span class="badge">✕</span>D</div>
+      <div class="sfoot"><div class="sbtn"><svg class="i"><use href="#i-plus"/></svg></div><div class="sbtn" style="background:var(--accent-soft);color:var(--accent)"><svg class="i"><use href="#i-pen"/></svg></div><div class="sbtn"><svg class="i"><use href="#i-gear"/></svg></div></div></div>
+  </div></div><h3>7. Edit mode</h3><p>Same pencil toggle as today, highlighted blue while editing. A short hint explains drag-to-reorder and remove.</p></div>
+
+</div>
