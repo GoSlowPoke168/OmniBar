@@ -305,6 +305,16 @@
       assert(s.scrollWidth <= s.clientWidth, `"${s.textContent}" cut off at ${innerWidth}px`);
     });
   });
+  uiCheck('actionPillsLeftAligned', async () => {
+    await openFirst();
+    const bar = q('#action-btns').getBoundingClientRect();
+    const [a, b] = [...document.querySelectorAll('#action-btns .btn')].map(el => el.getBoundingClientRect());
+    assert(Math.abs(a.left - bar.left) < 1, 'first pill not at the left edge');
+    document.querySelectorAll('#action-btns .btn').forEach(el => assert(getComputedStyle(el).flexGrow === '0', 'pill grows to fill the bar'));
+    assert(b.right < bar.right - 1, 'pills fill the whole bar');
+    assert(getComputedStyle(q('#act-summarize')).borderRadius === '999px', 'not a pill');
+    assert(Math.abs(a.top - b.top) < 1, `pills wrap onto two rows at ${innerWidth}px`);
+  });
   uiCheck('pageContextFollowsOwnWindow', async () => {
     await openFirst();
     __stub.lastFocusedWindow = 2;

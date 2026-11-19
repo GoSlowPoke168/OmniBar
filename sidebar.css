@@ -533,16 +533,26 @@ button {
 
 #action-btns {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
 #action-btns .btn {
-  flex: 1;
-  padding: 0 8px;
+  flex: none;
+  gap: 5px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+}
+
+#action-btns .btn .icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* Narrowest sidebars: drop the icons so both labels stay readable */
-@media (max-width: 349px) {
+@media (max-width: 359px) {
   #action-btns .btn .icon {
     display: none;
   }
