@@ -38,18 +38,24 @@ Copy each block into the matching field of the Developer Dashboard.
 ## Privacy practices tab
 
 **Single purpose description:**
-> OmniBar lets users open web apps of their choice in Chrome's side panel, next to the page they are viewing, and optionally send the current page's address to the open app.
+> OmniBar is a side panel for using web apps the user chooses, such as AI assistants, notes or docs, beside the page they are viewing. Its page tools serve the same purpose: with the user's permission, they show which tab is open and, when the user clicks, share that tab's URL with the app open in the panel.
 
-**Permission justifications:**
+**Permission justifications** (one box each in the dashboard):
 
 - **sidePanel:**
-  > Shows OmniBar's app launcher and the selected web app in Chrome's side panel, which is the extension's core feature.
+  > All of OmniBar's interface lives in Chrome's side panel: the app dock, the web app the user selects, Settings, and the page tools. The toolbar icon and the user's keyboard shortcut (Alt+Z by default) open and close the panel with sidePanel.open and sidePanel.close. Without this permission the extension has no interface.
 - **storage:**
-  > Saves the user's app list, settings and app icons locally on the device so they persist between sessions.
+  > chrome.storage.local saves the user's app list (names, URLs, order and per-app layout), settings (default app and the current-page access choice) and cached app icons on the device, so the setup persists between sessions and icons appear instantly. chrome.storage.session remembers which windows have the panel open, so the toolbar icon and shortcut toggle it correctly after the service worker restarts. Nothing is synced or sent to a server.
 - **declarativeNetRequest:**
-  > Many websites send X-Frame-Options or Content-Security-Policy headers that stop them from displaying inside another page. OmniBar uses a session rule to remove those two headers from subframe requests without a browser tab ID, including requests from the side panel. This lets users open their chosen apps inside the panel. Regular tabs keep their response headers.
+  > Many web apps send X-Frame-Options or Content-Security-Policy headers that stop them from displaying inside another page, so they would appear blank or refused in the side panel. OmniBar adds one session rule that removes only these two response headers, and only for sub_frame requests with tabId -1 (TAB_ID_NONE), meaning requests not tied to a browser tab, which is how frames inside the side panel load. Regular browser tabs never match the rule and keep all their headers. The rule does not block, redirect or change any other traffic.
 - **Host permission (<all_urls>):**
-  > Users can add web apps by URL, so OmniBar needs access to sites they choose to open in the sidebar. Host access enables embedding and lets the sidebar helper insert prompts at the user’s request and check for known sign-in errors. It also gives OmniBar the active web page’s URL and title for the opt-in page actions, the URL for Copy page link when clicked, and the URL of a Claude sign-in window OmniBar opens to detect when it reaches the chat page.
+  > Users add web apps by URL and can choose any site, so access cannot be limited to a fixed list of domains. Host access is used to:
+  > 1. Apply the header rule above so the user's chosen sites can load in the side panel.
+  > 2. Run a helper content script that exits immediately unless it is inside OmniBar's side panel. There it inserts a prompt into the open app when the user clicks Summarize page or Ask about page, and checks the app's visible text on the device for known sign-in errors.
+  > 3. Only after the user allows current-page access (changeable in Settings), read the active tab's URL and title to show which page those tools will use. Copy page link reads the URL only when clicked. OmniBar does not request the tabs permission.
+  > 4. Detect when sign-in finishes in a sign-in window OmniBar opens at the user's request.
+  > 5. Download app icons from Google's favicon service.
+  > activeTab is not enough: side panel buttons don't grant it, and apps must load without a toolbar click.
 
 **Remote code:**
 > No, I am not using remote code.
@@ -58,8 +64,8 @@ Justification (if asked):
 > All JavaScript ships in the package. The web apps users add are loaded from their own websites inside an iframe in the side panel; that content is isolated from extension APIs.
 
 **Data usage** (check these):
-- **Web history:** active tab address and title for the page actions after the user allows current page access. Copy page link reads the address at the user’s request. OmniBar also checks the address of a Claude sign-in window it opens to detect when the chat page loads.
-- **Website content:** the visible text of the app open in the side panel is checked on the device for a few known sign-in error messages.
+- **Web history:** the active tab's URL and title, read only after the user allows current-page access, to show which page Summarize page and Ask about page will use; the URL is put in the open app's prompt only when the user clicks one of them. Copy page link reads the URL when clicked. OmniBar also reads the URL of a sign-in window it opens, to detect when sign-in finishes.
+- **Website content:** the visible text of the app open in the side panel is checked on the device for a few known sign-in error messages. Nothing is stored or sent.
 
 Leave all other data types unchecked.
 
