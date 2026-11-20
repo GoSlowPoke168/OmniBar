@@ -82,6 +82,38 @@
     toggleEditMode();
     assert(!q('#btn-edit').classList.contains('is-active'), 'pencil still active');
   });
+  uiCheck('dragPreviewsOrderBeforeDrop', async () => {
+    const original = [...apps];
+    const transfer = new DataTransfer();
+    const drag = (type, element, clientY) => {
+      element.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: transfer, clientY }));
+    };
+    const first = appIcon(0);
+    const second = appIcon(1);
+    const firstSlot = first.getBoundingClientRect().top;
+    const target = appIcon(2).getBoundingClientRect();
+    const targetY = target.top + target.height / 2;
+    try {
+      drag('dragstart', first);
+      drag('dragover', appIcon(2), targetY);
+      await sleep(200);
+      assert(Math.abs(second.getBoundingClientRect().top - firstSlot) < 1, 'neighbor did not move into the first slot');
+      assert(apps[0] === original[0], 'drag preview changed the saved order');
+      drag('dragend', first);
+      await sleep(200);
+      assert(second.getBoundingClientRect().top > firstSlot, 'cancelled drag did not restore the strip');
+
+      drag('dragstart', first);
+      drag('dragover', appIcon(2), targetY);
+      drag('drop', appIcon(2), targetY);
+      assert(apps[2] === original[0] && __stub.storage.apps[2] === original[0], 'drop did not save the previewed order');
+    } finally {
+      cleanDrag();
+      apps = original;
+      save();
+      renderStrip();
+    }
+  });
 
   // Task 4
   uiCheck('noNativeTitles', () => {
@@ -112,9 +144,11 @@
   });
   uiCheck('actionBarNonWeb', async () => {
     await openFirst();
+    const frame = $frame;
     __stub.setActiveTab({ url: 'chrome://newtab/', title: 'New Tab' });
     __stub.fireTabActivated();
     await sleep(30);
+    assert($frame === frame && !visible(q('#load-spinner')), 'switching browser tabs reloaded the app');
     assert(q('#action-page').textContent === 'Page: none', q('#action-page').textContent);
     assert(q('#act-summarize').disabled && q('#act-ask').disabled, 'buttons not disabled');
     assert(q('#action-btns').dataset.tip === 'Open a regular web page first', 'no disabled tooltip');
@@ -151,8 +185,32 @@
     openApp({ id: 'slow', name: 'Slow', url: 'http://10.255.255.1/' });
     await sleep(100);
     assert(!visible(q('#load-spinner')), 'spinner visible before 150 ms');
+    assert(!visible(q('#app-frame')), 'unloaded iframe visible before the spinner');
     await sleep(150);
     assert(visible(q('#load-spinner')), 'spinner not visible after 250 ms of loading');
+  });
+  uiCheck('refreshSpinnerCoversBlankFrame', async () => {
+    await openFirst();
+    const spinner = q('#load-spinner');
+    q('#hdr-refresh').click();
+    assert(visible(spinner), 'refresh did not show the spinner immediately');
+    assert($frame.getAttribute('src') === activeApp().url, 'refresh navigated to a blank URL first');
+    await sleep(100);
+    assert($frame.contentDocument?.querySelector('textarea'), 'the app did not reload');
+    assert(!visible(spinner), 'spinner still visible after the app reloaded');
+  });
+  uiCheck('rapidAppSwitchKeepsLoadingCovered', async () => {
+    await openFirst();
+    appIcon(1).click();
+    const oldFrame = $frame;
+    appIcon(2).click();
+    assert(visible(q('#load-spinner')), 'switch did not show the spinner immediately');
+    assert(!visible($frame), 'new app visible before it loaded');
+    oldFrame.dispatchEvent(new Event('load'));
+    assert(visible(q('#load-spinner')), 'previous app load hid the spinner');
+    await sleep(100);
+    assert($frame.contentDocument?.querySelector('textarea'), 'the selected app did not load');
+    assert(visible($frame) && !visible(q('#load-spinner')), 'loaded app is still covered');
   });
   uiCheck('signinPanelIcon', async () => {
     await openFirst();
@@ -248,9 +306,16 @@
     const labels = [...document.querySelectorAll('#settings-sheet .label')].map(l => l.textContent);
     assert(labels.join('|') === 'Appearance|Default page|Current page|Apps|Shortcut', labels.join('|'));
     assert(q('#shortcut-keys').innerHTML === '<kbd>Alt</kbd><kbd>Z</kbd>', q('#shortcut-keys').innerHTML);
-    assert(q('#settings-version').textContent === 'OmniBar 1.0.0', q('#settings-version').textContent);
+    assert(q('#settings-version').textContent === 'OmniBar 2.0.0', q('#settings-version').textContent);
     const text = q('#settings-sheet').textContent;
     assert(!/How to use|Web App Sidebar/i.test(text), 'old copy present');
+  });
+  uiCheck('defaultPagePickerIsInSidebar', () => {
+    if (!CSS.supports('appearance', 'base-select')) return;
+    const select = q('#settings-default-page');
+    assert(getComputedStyle(select).appearance === 'base-select', 'default page uses the system popup');
+    assert(getComputedStyle(select).alignItems === 'center', 'default page label is not vertically centered');
+    assert(getComputedStyle(select, '::picker(select)').appearance === 'base-select', 'picker is not rendered in the sidebar');
   });
   uiCheck('keyboardDialog', () => {
     q('#btn-add').click();

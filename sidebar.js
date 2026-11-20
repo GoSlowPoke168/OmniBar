@@ -7,7 +7,6 @@ const DEFAULT_APPS = [
   { id: uid(), name: 'Gemini', url: 'https://gemini.google.com' },
   { id: uid(), name: 'ChatGPT', url: 'https://chatgpt.com' },
   { id: uid(), name: 'Grok', url: 'https://grok.com' },
-  { id: uid(), name: 'Deepseek', url: 'https://chat.deepseek.com/' },
   { id: uid(), name: 'Google Image Search', url: 'https://images.google.com/' }
 ];
 
@@ -19,6 +18,7 @@ let panelOpen = false;
 let editMode = false;
 let editingId = null;
 let dragSrcIdx = null;
+let dragTargetIdx = null;
 let ctxApp = null;
 let loadTimer = null;
 let spinnerTimer = null;
@@ -29,7 +29,7 @@ let pageAccess; // true / false once the user answers the page-access notice; un
 const $ = id => document.getElementById(id);
 const $content = $('content-panel');
 const $frameWrap = $('frame-wrap');
-const $frame = $('app-frame');
+let $frame = $('app-frame');
 const $spinner = $('load-spinner');
 const $blocked = $('blocked-msg');
 const $signin = $('signin-msg');
@@ -56,14 +56,13 @@ const $panelUrlText = $('panel-url-text');
 
 // Init
 async function init() {
-  try {
-    const win = await chrome.windows.getCurrent();
+  chrome.windows.getCurrent().then(win => {
     windowId = win?.id;
-  } catch (_) { }
-
-  if (windowId) {
-    chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
-  }
+    if (windowId) {
+      chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
+      if (panelOpen) refreshPageContext();
+    }
+  }).catch(() => { });
 
   const stored = await chrome.storage.local.get(['apps', 'defaultAppId', 'icons', 'pageAccess']);
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
@@ -73,10 +72,10 @@ async function init() {
   syncDefaultAppId();
   renderStrip();
   bindListeners();
-  refreshIcons();
 
   const defaultApp = apps.find(a => a.id === defaultAppId);
-  if (defaultApp) openApp(defaultApp);
+  if (defaultApp) openApp(defaultApp, { startup: true });
+  refreshIcons();
 
   // When the user closes the panel via the browser's own X button,
   // notify background.js so the hotkey toggle state stays accurate.
@@ -123,9 +122,7 @@ async function refreshIcons() {
       iconCache[host] = { data, at: Date.now() };
       changed = true;
       $icons.querySelectorAll(`.app-icon[data-host="${CSS.escape(host)}"]`).forEach(el => {
-        const [img, fb] = el.children;
-        img.style.display = fb.style.display = '';
-        img.src = data;
+        el.firstElementChild.src = data;
       });
     } catch (_) { /* offline: keep the old icon */ }
   }));
@@ -200,6 +197,7 @@ function syncContentState() {
 // Render app icons
 function renderStrip() {
   const focusedId = document.activeElement?.closest?.('.app-icon')?.dataset.id;
+  cleanDrag();
   $icons.innerHTML = '';
   $icons.classList.toggle('edit-mode', editMode);
   $('btn-edit').classList.toggle('is-active', editMode);
@@ -217,6 +215,7 @@ function renderStrip() {
     el.setAttribute('aria-label', app.name);
 
     const img = document.createElement('img');
+    if (!iconCache[el.dataset.host]?.data) img.loading = 'lazy';
     img.src = getFavicon(app.url);
     img.alt = '';
 
@@ -224,10 +223,8 @@ function renderStrip() {
     fb.className = 'fallback';
     fb.textContent = (app.name.trim()[0] ?? '?').toUpperCase();
 
-    img.addEventListener('error', () => {
-      img.style.display = 'none';
-      fb.style.display = 'flex';
-    });
+    img.addEventListener('load', () => img.classList.add('loaded'));
+    img.addEventListener('error', () => img.classList.remove('loaded'));
 
     el.appendChild(img);
     el.appendChild(fb);
@@ -250,10 +247,7 @@ function renderStrip() {
     el.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
     el.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); showCtxMenu(e, app); });
     el.addEventListener('dragstart', e => onDragStart(e, i));
-    el.addEventListener('dragover', e => onDragOver(e, el));
-    el.addEventListener('drop', e => onDrop(e, i));
-    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
-    el.addEventListener('dragend', () => cleanDrag());
+    el.addEventListener('dragend', cleanDrag);
 
     $icons.appendChild(el);
   });
@@ -270,9 +264,11 @@ function toggleApp(app) {
 function hideSpinner() {
   clearTimeout(spinnerTimer);
   $spinner.classList.add('hidden');
+  $frame.classList.remove('loading');
 }
 
-function openApp(app) {
+function openApp(app, { startup = false } = {}) {
+  const immediateSpinner = panelOpen || startup;
   activeId = app.id;
   panelOpen = true;
 
@@ -285,28 +281,31 @@ function openApp(app) {
   applyViewMode();
   refreshPageContext();
 
-  // Reset state; the spinner only appears if loading takes longer than 150 ms
   clearTimeout(loadTimer);
   $frame.style.display = 'block';
   $blocked.classList.add('hidden');
   $signin.classList.add('hidden');
   hideSpinner();
-  spinnerTimer = setTimeout(() => $spinner.classList.remove('hidden'), 150);
+  $frame.classList.add('loading');
+  if (immediateSpinner) $spinner.classList.remove('hidden');
+  else spinnerTimer = setTimeout(() => $spinner.classList.remove('hidden'), 150);
 
-  // Skip the onload that fires for src='' (about:blank), only handle the real URL load
-  let realLoad = false;
-  $frame.onload = () => {
-    if (!realLoad) return;
-    hideSpinner();
-    clearTimeout(loadTimer);
-  };
+  const previousFrame = $frame;
+  const loadAppFrame = () => {
+    if (!panelOpen || $frame !== previousFrame) return;
 
-  $frame.src = '';
-  requestAnimationFrame(() => {
-    realLoad = true;
+    // A new frame reloads even the same URL without navigating through about:blank.
+    previousFrame.onload = null;
+    $frame = previousFrame.cloneNode(false);
+    $frame.onload = () => {
+      $frame.onload = null;
+      hideSpinner();
+      clearTimeout(loadTimer);
+    };
     $frame.src = app.url;
+    previousFrame.replaceWith($frame);
 
-    // Blocked-site detection: if still loading after 8s, check if it actually loaded
+    // Blocked-site detection: if still loading after 8s, check if it actually loaded.
     loadTimer = setTimeout(() => {
       hideSpinner();
       try {
@@ -319,7 +318,16 @@ function openApp(app) {
         // SecurityError = cross-origin page loaded successfully — this is normal
       }
     }, 8000);
-  });
+  };
+
+  if (startup) {
+    // Chrome waits for the sidebar's first load before revealing its extension content.
+    const afterShellLoad = () => setTimeout(loadAppFrame, 0);
+    if (document.readyState === 'complete') afterShellLoad();
+    else window.addEventListener('load', afterShellLoad, { once: true });
+  } else {
+    loadAppFrame();
+  }
 
   renderStrip();
 }
@@ -662,30 +670,59 @@ async function resetToDefaults() {
 // Drag & drop
 function onDragStart(e, idx) {
   hideTip();
-  dragSrcIdx = idx;
+  dragSrcIdx = dragTargetIdx = idx;
   e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => $icons.children[idx]?.classList.add('dragging'), 0);
+  const icon = e.currentTarget;
+  setTimeout(() => {
+    if (dragSrcIdx === idx && icon.isConnected) icon.classList.add('dragging');
+  }, 0);
 }
-function onDragOver(e, el) {
+function onDragOver(e) {
+  if (dragSrcIdx === null) return;
   e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.app-icon.drag-over').forEach(x => x.classList.remove('drag-over'));
-  el.classList.add('drag-over');
+  const [first, second] = $icons.children;
+  if (!second) return;
+  const step = second.offsetTop - first.offsetTop;
+  const y = e.clientY - $icons.getBoundingClientRect().top + $icons.scrollTop;
+  const slot = Math.round((y - first.offsetTop - first.offsetHeight / 2) / step);
+  const target = Math.max(0, Math.min(slot, apps.length - 1));
+  if (target === dragTargetIdx) return;
+  dragTargetIdx = target;
+
+  // Leave the native drag source mounted and measure against the unshifted slots.
+  [...$icons.children].forEach((icon, i) => {
+    let shift = 0;
+    if (i === dragSrcIdx) shift = target - dragSrcIdx;
+    else if (dragSrcIdx < i && i <= target) shift = -1;
+    else if (target <= i && i < dragSrcIdx) shift = 1;
+    icon.style.setProperty('--drag-offset', `${shift * step}px`);
+  });
 }
-function onDrop(e, toIdx) {
+function onDrop(e) {
+  if (dragSrcIdx === null) return;
   e.preventDefault();
-  if (dragSrcIdx === null || dragSrcIdx === toIdx) return;
-  const [moved] = apps.splice(dragSrcIdx, 1);
-  apps.splice(toIdx, 0, moved);
+  const from = dragSrcIdx;
+  const to = dragTargetIdx;
+  cleanDrag();
+  if (from === to) return;
+  const [moved] = apps.splice(from, 1);
+  apps.splice(to, 0, moved);
   save(); renderStrip();
 }
 function cleanDrag() {
-  dragSrcIdx = null;
-  document.querySelectorAll('.app-icon.dragging, .app-icon.drag-over')
-    .forEach(el => el.classList.remove('dragging', 'drag-over'));
+  if (dragSrcIdx === null) return;
+  dragSrcIdx = dragTargetIdx = null;
+  for (const icon of $icons.children) {
+    icon.classList.remove('dragging');
+    icon.style.removeProperty('--drag-offset');
+  }
 }
 
 // All listeners
 function bindListeners() {
+  $icons.addEventListener('dragover', onDragOver);
+  $icons.addEventListener('drop', onDrop);
+
   // Tooltips
   document.addEventListener('pointerover', e => {
     const el = e.target.closest?.('[data-tip]');
@@ -874,7 +911,7 @@ function bindListeners() {
 
   // Escape closes the topmost layer first
   document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
+    if (e.key !== 'Escape' || $defaultPageSelect.matches(':is(:open)')) return;
     if (confirmResolve) return confirmResolve(false);
     if (openSheetId) return closeSheet();
     if (!$ctxMenu.classList.contains('hidden')) return hideCtxMenu();

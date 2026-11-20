@@ -404,6 +404,7 @@ button {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  background: var(--bg);
 }
 
 #app-frame {
@@ -417,6 +418,10 @@ button {
 
 #app-frame.desktop {
   transform-origin: 0 0;
+}
+
+#app-frame.loading {
+  visibility: hidden;
 }
 
 #load-spinner {
@@ -621,6 +626,7 @@ button {
 }
 
 #app-icons {
+  position: relative;
   flex: 1;
   width: 100%;
   display: flex;
@@ -642,7 +648,9 @@ button {
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
-  transition: background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  translate: 0 var(--drag-offset, 0px);
+  transition: background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
+    translate var(--t-open) var(--ease);
 }
 
 .app-icon:hover {
@@ -659,16 +667,13 @@ button {
   outline-offset: -1px;
 }
 
-.app-icon.drag-over {
-  background: var(--accent-soft);
-  transform: scale(1.1);
-}
-
 .app-icon.dragging {
   opacity: .3;
 }
 
 .app-icon img {
+  grid-area: 1 / 1;
+  visibility: hidden;
   width: 20px;
   height: 20px;
   border-radius: 4px;
@@ -676,8 +681,17 @@ button {
   pointer-events: none;
 }
 
-.app-icon .fallback {
+.app-icon img.loaded {
+  visibility: visible;
+}
+
+.app-icon img.loaded + .fallback {
   display: none;
+}
+
+.app-icon .fallback {
+  grid-area: 1 / 1;
+  display: flex;
   width: 24px;
   height: 24px;
   border-radius: var(--r-sm);
@@ -903,6 +917,31 @@ button {
   transform: translateY(-50%);
   color: var(--text-2);
   pointer-events: none;
+}
+
+/* Keep the picker in the sidebar instead of opening a browser popup. */
+@supports (appearance: base-select) {
+  .select,
+  .select::picker(select) {
+    appearance: base-select;
+  }
+
+  .select {
+    align-items: center;
+  }
+
+  .select::picker-icon {
+    display: none;
+  }
+
+  .select::picker(select) {
+    width: anchor-size(width);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--raised);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
 }
 
 .select-wrap+.help {

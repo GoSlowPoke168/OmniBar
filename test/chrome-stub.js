@@ -41,7 +41,7 @@
   window.chrome = {
     runtime: {
       lastError: undefined,
-      getManifest: () => ({ version: '1.0.0' }),
+      getManifest: () => ({ version: '2.0.0' }),
       getURL: p => `${location.origin}/${p}`,
       sendMessage(msg, cb) {
         if (msg.type !== 'get-active-tab-url') return both({ status: 'ok' }, cb);

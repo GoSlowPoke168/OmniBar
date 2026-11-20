@@ -34,7 +34,7 @@ OmniBar does not sell, rent or share your data with anyone else, does not use it
 - **Side panel (`sidePanel`):** to show OmniBar in the browser's side panel.
 - **Storage (`storage`):** to save your app list and settings on your device.
 - **Tabs (`tabs`):** to read the current tab's address and title for the action bar, and to open apps in a new tab or window when you ask.
-- **Declarative Net Request (`declarativeNetRequest`):** many sites send headers that block them from appearing inside other pages. OmniBar removes those headers only for pages loaded inside its own side panel, so your apps can display there. Your normal tabs are not affected.
+- **Declarative Net Request (`declarativeNetRequest`):** many sites send headers that block them from appearing inside other pages. OmniBar uses a session rule to remove those headers from subframe requests without a browser tab ID, including requests from the side panel. Regular tabs keep their response headers.
 - **Access to all websites:** your apps can be any website, so OmniBar needs access to load them in the side panel and to run its helper script inside them. The helper script only works inside OmniBar's side panel. It types the prompt when you click Summarize page or Ask about page, and checks for the sign-in messages described above.
 
 ## Deleting your data

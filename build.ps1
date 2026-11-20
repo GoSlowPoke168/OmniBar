@@ -2,7 +2,7 @@
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
-$files = 'manifest.json', 'background.js', 'frame-bridge.js', 'sidebar.html', 'sidebar.css', 'sidebar.js', 'theme.js', 'icons', 'fonts'
+$files = 'manifest.json', 'background.js', 'frame-bridge.js', 'sidebar.html', 'sidebar.css', 'sidebar.js', 'theme.js', 'icons', 'fonts', 'LICENSE'
 $stage = Join-Path 'dist' 'omnibar'
 $zip = Join-Path 'dist' 'omnibar.zip'
 

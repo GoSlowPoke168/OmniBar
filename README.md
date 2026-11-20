@@ -4,18 +4,17 @@ A customizable sidebar extension for Chromium-based browsers like Google Chrome,
 
 Created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
 
-![OmniBar Demonstration](docs/store/screenshot-1-chat-dark.png)
+[Watch the OmniBar demo (1:14, MP4)](docs/store/omnibar-store-demo-raw.mp4)
 
 ## Features
 
-- **Customizable App Dock:** Add, edit, remove, and reorder your favorite web apps via a sleek, drag-and-drop interface.
-- **Global Toggle Shortcut:** Quickly open and close the sidebar using a customizable keyboard shortcut (default: `Alt+Z`).
-- **Summarize Page & Ask About Page:** Send the current tab's address to the open app in one click. OmniBar asks before reading the current page and shows which page it will use.
-- **Default Page:** Open your favorite app automatically whenever the sidebar opens.
-- **Light & Dark Themes:** Follows Chrome's theme, or pick one in Settings.
-- **Desktop or Mobile View:** Choose per app whether sites get their desktop or mobile layout.
-- **Sign-in Help:** When a site can't sign in inside the sidebar, OmniBar shows simple steps to sign in once in a separate window.
-- **Saved Preferences:** Your apps and settings are saved on your device, so your setup stays intact after restarting the browser. Import and export your app list anytime.
+- **App dock.** Add, edit, remove, and reorder web apps. Icons slide into place as you drag. Open apps in the sidebar, a new tab, or a separate side window.
+- **Page actions.** **Summarize page** sends a prompt with the current tab’s URL to a compatible chat app. **Ask about page** fills in the page URL so you can add your question before sending. OmniBar asks before reading the current tab and shows which page it will use.
+- **Default page and loading indicator.** Open a chosen app automatically with the sidebar. The app strip and controls are available while the page loads.
+- **Theme and layout.** Follow the browser theme or choose light or dark mode. Switch between mobile and desktop layouts per app.
+- **Keyboard shortcut.** Press `Alt+Z` to toggle the sidebar, or change the shortcut in your browser.
+- **Sign-in help.** If the embedded app asks you to sign in, OmniBar can open its sign-in page in a separate window.
+- **Local settings.** OmniBar saves your app list and preferences on your device. Export or import your app list from Settings.
 
 ## How to Use
 
@@ -43,7 +42,7 @@ A Chrome Web Store listing is on the way. Until then, load OmniBar as an unpacke
 
 ### General Steps
 
-1. **Download the code:** Download the latest release `.zip` file from the Releases page (or clone the repository) and extract it to a folder on your computer.
+1. **Download OmniBar.** Get `omnibar.zip` from the [latest GitHub release](https://github.com/GoSlowPoke168/OmniBar/releases/latest) and extract it.
 2. Open your browser and navigate to the Extensions page (see the [Browser-Specific Links](#browser-specific-links) below).
 3. Enable **Developer mode**.
 4. Click the **Load unpacked** button.
@@ -62,15 +61,15 @@ A Chrome Web Store listing is on the way. Until then, load OmniBar as an unpacke
 
 ## Technical Notes
 
-To allow external websites to load inside the sidebar's `<iframe>` context, this extension utilizes the `declarativeNetRequest` API to remove frame-blocking HTTP response headers. This only applies to pages loaded inside OmniBar's side panel; normal tabs are not affected. Some websites might still not load due to client-side bot-mitigation techniques (such as Cloudflare Turnstile), which block rendering within an iframe.
+OmniBar uses the `declarativeNetRequest` API to help external websites load in its sidebar iframe. Its session rule removes frame-blocking response headers from subframe requests without a browser tab ID, including requests from the side panel. Regular tabs keep their response headers. Some websites can still block embedded access.
+
+### Known issue with Claude
+
+Claude’s sign-in flow can fail inside the sidebar. If that happens, right-click Claude’s icon and choose **Sign in…**, or sign in to `claude.ai` in a regular browser tab. Return to OmniBar and click **Refresh** if Claude stays on the sign-in screen.
 
 ## Privacy
 
 OmniBar has no servers, accounts, analytics, or ads. See the [Privacy Policy](PRIVACY.md).
-
-## TODO
-
-- [x] Add a page button to extract context from the current page
 
 ## Support the Project
 If you find this plugin useful, please leave a star on GitHub or consider supporting its development!
@@ -79,8 +78,4 @@ If you find this plugin useful, please leave a star on GitHub or consider suppor
 
 ## License
 
-[![GitHub License](https://img.shields.io/github/license/goslowpoke168/omnibar?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1zY2FsZSI+PHBhdGggZD0ibTE2IDE2IDMtOCAzIDhjLS44Ny42NS0xLjkyIDEtMyAxcy0yLjEzLS4zNS0zLTFaIi8+PHBhdGggZD0ibTIgMTYgMy04IDMgOGMtLjg3LjY1LTEuOTIgMS0zIDFzLTIuMTMtLjM1LTMtMVoiLz48cGF0aCBkPSJNNyAyMWgxMCIvPjxwYXRoIGQ9Ik0xMiAzdjE4Ii8+PHBhdGggZD0iTTMgN2gyYzIgMCA1LTEgNy0yIDIgMSA1IDIgNyAyaDIiLz48L3N2Zz4=)](https://github.com/GoSlowPoke168/OmniBar/blob/main/LICENSE)
-
-OmniBar is licensed under the [GNU General Public License v3.0](LICENSE). Copyright (C) 2026 Jeremy Hou. Versions released before November 19, 2026 were licensed under MIT.
-
-The OmniBar name and icon are not covered by this license and may not be used to identify other extensions.
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge&logo=gnu&logoColor=white)](LICENSE)
