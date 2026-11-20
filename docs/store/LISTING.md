@@ -51,7 +51,7 @@ Copy each block into the matching field of the Developer Dashboard.
 - **Host permission (<all_urls>):**
   > Users add web apps by URL and can choose any site, so access cannot be limited to a fixed list of domains. Host access is used to:
   > 1. Apply the header rule above so the user's chosen sites can load in the side panel.
-  > 2. Run a helper content script that exits immediately unless it is inside OmniBar's side panel. There it inserts a prompt into the open app when the user clicks Summarize page or Ask about page, and checks the app's visible text on the device for known sign-in errors.
+  > 2. Run a helper content script that exits immediately unless it is inside OmniBar's side panel. There it inserts a prompt into the open app when the user clicks Summarize page or Ask about page, and checks alert boxes and short error pages on the device for known sign-in errors.
   > 3. Only after the user allows current-page access (changeable in Settings), read the active tab's URL and title to show which page those tools will use. Copy page link reads the URL only when clicked. OmniBar does not request the tabs permission.
   > 4. Detect when sign-in finishes in a sign-in window OmniBar opens at the user's request.
   > 5. Download app icons from Google's favicon service.
@@ -65,7 +65,7 @@ Justification (if asked):
 
 **Data usage** (check these):
 - **Web history:** the active tab's URL and title, read only after the user allows current-page access, to show which page Summarize page and Ask about page will use; the URL is put in the open app's prompt only when the user clicks one of them. Copy page link reads the URL when clicked. OmniBar also reads the URL of a sign-in window it opens, to detect when sign-in finishes.
-- **Website content:** the visible text of the app open in the side panel is checked on the device for a few known sign-in error messages. Nothing is stored or sent.
+- **Website content:** for about 30 seconds after an app loads, OmniBar checks its alert boxes, and the page text only if the page is short (an error or sign-in page), for a few known sign-in error messages. Chat history is never read. Nothing is stored or sent.
 
 Leave all other data types unchecked.
 

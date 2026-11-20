@@ -17,7 +17,7 @@ All of this stays on your device, in your browser's extension storage. It is nev
 
 - **Current page context.** After you click **Allow** on "Show the current page here?", OmniBar reads the active tab’s address and title to show the **Page** label. **Summarize page** submits a prompt containing the address to the open chat app. **Ask about page** puts the address into the app’s prompt box for you to complete and send. OmniBar keeps no saved history of these page addresses or titles. You can turn these features off in Settings → Current page.
 - **Copy page link.** When you click this button, OmniBar reads the active web page’s address and copies it to your clipboard. This separate action works even when Current page is off.
-- **Sign-in help.** OmniBar checks the sidebar app’s response status, hostname, and visible text for known sign-in errors. It watches for text changes for up to about 30 seconds after the app loads. If you open Claude in OmniBar’s separate sign-in window, OmniBar checks that window’s address to tell when Claude reaches its chat page. These checks happen on your device.
+- **Sign-in help.** OmniBar checks the sidebar app’s response status, hostname, and error messages for known sign-in errors. It only reads text in alert boxes or on short pages, such as error and sign-in pages, so your chat history is never read. It watches for changes for up to about 30 seconds after the app loads. If you open Claude in OmniBar’s separate sign-in window, OmniBar checks that window’s address to tell when Claude reaches its chat page. These checks happen on your device.
 
 OmniBar does not read or change pages in your normal browser tabs.
 

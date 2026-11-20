@@ -5,6 +5,14 @@ const bridgeOrigin = new URL(chrome.runtime.getURL('')).origin;
 // a Google sign-in page, or one of these messages shown by the app.
 const SIGNIN_HOSTS = ['accounts.google.com'];
 const SIGNIN_TEXT = /can’t (run|finish) in an embedded view|Max challenge attempts exceeded/i;
+// Only alert boxes and short error-style pages are checked, so a chat's message history is never read.
+const SHORT_PAGE_CHARS = 1500;
+
+function hasSignInError(doc) {
+  if ([...doc.querySelectorAll('[role="alert"]')].some(el => SIGNIN_TEXT.test(el.textContent))) return true;
+  const text = doc.body?.innerText ?? '';
+  return text.length <= SHORT_PAGE_CHARS && SIGNIN_TEXT.test(text);
+}
 
 if (window.top !== window && location.ancestorOrigins?.[0] === bridgeOrigin) {
   const notifySignIn = () => window.parent.postMessage({ type: 'omnibar-signin-needed' }, bridgeOrigin);
@@ -16,7 +24,7 @@ if (window.top !== window && location.ancestorOrigins?.[0] === bridgeOrigin) {
     let pending = false;
     const check = () => {
       pending = false;
-      if (!SIGNIN_TEXT.test(document.body?.innerText ?? '')) return;
+      if (!hasSignInError(document)) return;
       observer.disconnect();
       notifySignIn();
     };

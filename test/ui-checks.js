@@ -447,6 +447,32 @@
     assert(__stub.storage.pageAccess === true, 'Settings On not saved');
   }));
 
+  // Sign-in error check (frame-bridge.js) never reads a full chat
+  async function loadBridge() {
+    if (typeof hasSignInError === 'function') return;
+    await new Promise((resolve, reject) => {
+      const s = Object.assign(document.createElement('script'), { src: 'frame-bridge.js', onload: resolve, onerror: reject });
+      document.head.appendChild(s);
+    });
+  }
+  const docOf = html => new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  const ERR = 'This page can’t run in an embedded view. Open it in its own tab to continue.';
+  uiCheck('signInCheckShortPage', async () => {
+    await loadBridge();
+    assert(hasSignInError(docOf(`<main><p>${ERR}</p></main>`)), 'short error page not detected');
+    assert(hasSignInError(docOf('<p>Max challenge attempts exceeded. Please refresh the page to try again!</p>')), 'DeepSeek error not detected');
+  });
+  uiCheck('signInCheckAlertOnLongPage', async () => {
+    await loadBridge();
+    const filler = '<p>' + 'Some page content. '.repeat(200) + '</p>';
+    assert(hasSignInError(docOf(`${filler}<div role="alert">${ERR}</div>`)), 'alert on a long page not detected');
+  });
+  uiCheck('signInCheckIgnoresLongChat', async () => {
+    await loadBridge();
+    const chat = '<p>' + 'A long conversation message. '.repeat(100) + '</p>';
+    assert(!hasSignInError(docOf(`${chat}<p>You wrote: ${ERR}</p>`)), 'full chat text was scanned');
+  });
+
   // Icon cache
   async function withFakeFavicons(fn) {
     const realFetch = window.fetch;
