@@ -9,13 +9,13 @@ OmniBar is a free browser extension that lets you open your favorite web apps in
 All of this stays on your device, in your browser's extension storage. It is never sent to the developer.
 
 - **Your app list:** each app's name and web address, its order, and whether you turned on desktop view for it.
-- **Your settings:** your Default page and your Appearance choice (System, Light or Dark).
+- **Your settings:** your Default page, your Appearance choice (System, Light or Dark), and whether you allowed OmniBar to read the current page.
 - **Your apps' icons**, saved after they're first downloaded so the sidebar opens quickly.
 - **Which browser windows have the sidebar open**, so the keyboard shortcut can open and close it correctly. This is cleared when the browser closes.
 
 ## What OmniBar reads
 
-- **The current tab's web address and title.** OmniBar reads these to show "Page: …" above the Summarize page and Ask about page buttons. The address is only used when you act:
+- **The current tab's web address and title**, only after you allow it. The first time you open an app, OmniBar asks "Show the current page here?" and reads nothing until you click **Allow**. You can turn this off or on at any time in Settings → Current page. When allowed, OmniBar reads these to show "Page: …" above the Summarize page and Ask about page buttons. The address is only used when you act:
   - **Summarize page** and **Ask about page** type the address into the app open in the sidebar. That app then receives it, the same as if you had typed it yourself.
   - **Copy page link** copies the address to your clipboard.
 - **Text shown by the app in the sidebar.** For about 30 seconds after an app loads, OmniBar checks the app's visible text for a few known error messages (for example, when a site needs you to sign in in a separate tab), so it can show sign-in help. This check happens on your device and nothing is saved or sent.

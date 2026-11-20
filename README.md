@@ -4,21 +4,26 @@ A customizable sidebar extension for Chromium-based browsers like Google Chrome,
 
 Created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
 
-![OmniBar Demonstration](assets/demo.png)
+![OmniBar Demonstration](docs/store/screenshot-1-chat-dark.png)
 
 ## Features
 
 - **Customizable App Dock:** Add, edit, remove, and reorder your favorite web apps via a sleek, drag-and-drop interface.
 - **Global Toggle Shortcut:** Quickly open and close the sidebar using a customizable keyboard shortcut (default: `Alt+Z`).
-- **Contextual Copy Utilities:** Includes a one-click header utility to instantly copy the active tab's URL to your clipboard for easy pasting into docked AI tools.
-- **Saved Preferences:** Your custom list of web apps is automatically saved to local storage, ensuring your custom setup remains intact even after restarting the browser.
+- **Summarize Page & Ask About Page:** Send the current tab's address to the open app in one click. OmniBar asks before reading the current page and shows which page it will use.
+- **Default Page:** Open your favorite app automatically whenever the sidebar opens.
+- **Light & Dark Themes:** Follows Chrome's theme, or pick one in Settings.
+- **Desktop or Mobile View:** Choose per app whether sites get their desktop or mobile layout.
+- **Sign-in Help:** When a site can't sign in inside the sidebar, OmniBar shows simple steps to sign in once in a separate window.
+- **Saved Preferences:** Your apps and settings are saved on your device, so your setup stays intact after restarting the browser. Import and export your app list anytime.
 
 ## How to Use
 
 - Click an icon to open it in the sidebar
-- Right-click an icon to edit, remove, or open elsewhere
-- Click ✎ to enter edit mode & drag to reorder
-- Click + to add a new app
+- Right-click an icon to open it elsewhere, sign in, edit, or remove it
+- Click the pencil to enter edit mode, then drag to reorder
+- Click + to add a new app and the gear for Settings
+- Use **Summarize page** or **Ask about page** at the bottom of the sidebar to send the current page to the open app
 
 ## Compatibility
 
@@ -34,7 +39,7 @@ Created as a replacement for the Microsoft Edge sidebar since Microsoft removed 
 
 ## Installation
 
-This extension is intended to be loaded as an unpacked extension in Developer Mode for now. In the future, there are plans to publish it to the browser extension stores.
+A Chrome Web Store listing is on the way. Until then, load OmniBar as an unpacked extension in Developer Mode.
 
 ### General Steps
 
@@ -57,11 +62,15 @@ This extension is intended to be loaded as an unpacked extension in Developer Mo
 
 ## Technical Notes
 
-To allow external websites to load inside the sidebar's `<iframe>` context, this extension utilizes the `declarativeNetRequest` API to modify HTTP response headers. However, some websites might not connect and load due to client-side bot-mitigation techniques (such as Cloudflare Turnstile), which block rendering within an iframe.
+To allow external websites to load inside the sidebar's `<iframe>` context, this extension utilizes the `declarativeNetRequest` API to remove frame-blocking HTTP response headers. This only applies to pages loaded inside OmniBar's side panel; normal tabs are not affected. Some websites might still not load due to client-side bot-mitigation techniques (such as Cloudflare Turnstile), which block rendering within an iframe.
+
+## Privacy
+
+OmniBar has no servers, accounts, analytics, or ads. See the [Privacy Policy](PRIVACY.md).
 
 ## TODO
 
-- [ ] Add a page button to extract context from the current page
+- [x] Add a page button to extract context from the current page
 
 ## Support the Project
 If you find this plugin useful, please leave a star on GitHub or consider supporting its development!

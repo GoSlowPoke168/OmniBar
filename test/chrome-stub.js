@@ -18,6 +18,7 @@
   const stub = {
     activeTab: { url: 'https://en.wikipedia.org/wiki/Garbage', title: 'Garbage – Wikipedia' },
     storage: {
+      pageAccess: true,
       apps: [
         { id: 'claude', name: 'Claude', url: fake('Claude') },
         { id: 'gemini', name: 'Gemini', url: fake('Gemini') },

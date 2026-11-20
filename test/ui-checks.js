@@ -246,7 +246,7 @@
     q('#btn-settings').click();
     await sleep(30);
     const labels = [...document.querySelectorAll('#settings-sheet .label')].map(l => l.textContent);
-    assert(labels.join('|') === 'Appearance|Default page|Apps|Shortcut', labels.join('|'));
+    assert(labels.join('|') === 'Appearance|Default page|Current page|Apps|Shortcut', labels.join('|'));
     assert(q('#shortcut-keys').innerHTML === '<kbd>Alt</kbd><kbd>Z</kbd>', q('#shortcut-keys').innerHTML);
     assert(q('#settings-version').textContent === 'OmniBar 1.0.0', q('#settings-version').textContent);
     const text = q('#settings-sheet').textContent;
@@ -339,6 +339,48 @@
     await sleep(30);
     assert(document.activeElement?.dataset?.id === apps[0].id, `focus on ${document.activeElement?.tagName}`);
   });
+
+  // Page access consent
+  async function withPageAccess(value, fn) {
+    const saved = pageAccess;
+    pageAccess = value;
+    try { await fn(); } finally { pageAccess = saved; refreshPageContext(); }
+  }
+  uiCheck('pageNoticeBeforeConsent', () => withPageAccess(undefined, async () => {
+    const n = __stub.queries;
+    await openFirst();
+    assert(visible(q('#page-notice')), 'notice not shown');
+    assert(!visible(q('#action-btns')) && !visible(q('#action-page')), 'actions shown before consent');
+    assert(__stub.queries === n, 'tab was read before consent');
+  }));
+  uiCheck('pageNoticeAllow', () => withPageAccess(undefined, async () => {
+    await openFirst();
+    q('#page-allow').click();
+    await sleep(30);
+    assert(__stub.storage.pageAccess === true, 'consent not saved');
+    assert(!visible(q('#page-notice')) && visible(q('#action-btns')), 'actions not shown after Allow');
+    assert(q('#action-page').textContent === 'Page: Garbage – Wikipedia', q('#action-page').textContent);
+  }));
+  uiCheck('pageNoticeNotNow', () => withPageAccess(undefined, async () => {
+    await openFirst();
+    const n = __stub.queries;
+    q('#page-notnow').click();
+    await sleep(30);
+    assert(__stub.storage.pageAccess === false, 'refusal not saved');
+    assert(visible(q('#page-off')) && !visible(q('#page-notice')) && !visible(q('#action-btns')), 'off state wrong');
+    assert(__stub.queries === n, 'tab read after Not now');
+    q('#page-turnon').click();
+    await sleep(30);
+    assert(__stub.storage.pageAccess === true && visible(q('#action-btns')), 'Turn on did not enable');
+  }));
+  uiCheck('pageAccessInSettings', () => withPageAccess(true, async () => {
+    q('#btn-settings').click();
+    q('#settings-page-access [data-access="off"]').click();
+    assert(__stub.storage.pageAccess === false, 'Settings Off not saved');
+    assert(q('#settings-page-access [data-access="off"]').getAttribute('aria-checked') === 'true', 'segment not checked');
+    q('#settings-page-access [data-access="on"]').click();
+    assert(__stub.storage.pageAccess === true, 'Settings On not saved');
+  }));
 
   // Icon cache
   async function withFakeFavicons(fn) {

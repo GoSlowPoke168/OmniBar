@@ -104,7 +104,17 @@
         </div>
       </div>
 
-      <div id="action-bar">
+      <div id="action-bar" data-access="ask">
+        <div id="page-notice">
+          <p class="notice-title">Show the current page here?</p>
+          <p class="help">OmniBar can read the current tab's address and title to show it here, and sends the address to
+            the open app only when you click Summarize page or Ask about page. Nothing is stored or sent anywhere else.</p>
+          <div class="notice-actions">
+            <button class="btn btn-primary" id="page-allow">Allow</button>
+            <button class="btn" id="page-notnow">Not now</button>
+          </div>
+        </div>
+        <div id="page-off">Page access is off · <a href="#" class="link" id="page-turnon">Turn on</a></div>
         <div id="action-page">Page: <b id="action-page-title"></b></div>
         <div id="action-btns">
           <button class="btn btn-primary" id="act-summarize">
@@ -169,6 +179,14 @@
               <svg class="icon select-chev"><use href="#i-chev" /></svg>
             </div>
             <p class="help">Opens automatically when the sidebar opens.</p>
+          </section>
+          <section>
+            <h4 class="label">Current page</h4>
+            <div class="segmented" id="settings-page-access" role="radiogroup" aria-label="Current page access">
+              <button role="radio" data-access="on">On</button>
+              <button role="radio" data-access="off">Off</button>
+            </div>
+            <p class="help">Lets OmniBar read the current tab's address and title for Summarize page and Ask about page.</p>
           </section>
           <section>
             <h4 class="label">Apps</h4>

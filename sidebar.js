@@ -23,6 +23,7 @@ let ctxApp = null;
 let loadTimer = null;
 let spinnerTimer = null;
 let windowId = null;
+let pageAccess; // true / false once the user answers the page-access notice; undefined until then
 
 // DOM refs
 const $ = id => document.getElementById(id);
@@ -64,10 +65,11 @@ async function init() {
     chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
   }
 
-  const stored = await chrome.storage.local.get(['apps', 'defaultAppId', 'icons']);
+  const stored = await chrome.storage.local.get(['apps', 'defaultAppId', 'icons', 'pageAccess']);
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
   defaultAppId = stored.defaultAppId ?? null;
   iconCache = stored.icons ?? {};
+  pageAccess = stored.pageAccess;
   syncDefaultAppId();
   renderStrip();
   bindListeners();
@@ -359,8 +361,16 @@ function closePanel() {
   renderStrip();
 }
 
-// Action bar: shows which page Summarize / Ask will use
+// Action bar: shows which page Summarize / Ask will use, once the user allows reading the tab
+function setPageAccess(allowed) {
+  pageAccess = allowed;
+  chrome.storage.local.set({ pageAccess: allowed });
+  refreshPageContext();
+}
 function refreshPageContext() {
+  $('action-bar').dataset.access = pageAccess === true ? 'on' : pageAccess === false ? 'off' : 'ask';
+  if (panelOpen) applyViewMode();
+  if (pageAccess !== true) return;
   getActiveTab(res => {
     const url = res?.url ?? '';
     const isWeb = /^https?:\/\//.test(url);
@@ -417,7 +427,7 @@ function signInViaWindow(app) {
 let insertTimer = null;
 function sendPageToApp(buildPrompt, send) {
   const app = activeApp();
-  if (!app) return;
+  if (!app || pageAccess !== true) return;
   getActiveTab(res => {
     const url = res?.url ?? '';
     if (!/^https?:\/\//.test(url)) {
@@ -574,9 +584,15 @@ function renderShortcut() {
     });
   });
 }
+function renderPageAccessControl() {
+  $('settings-page-access').querySelectorAll('button').forEach(b => {
+    b.setAttribute('aria-checked', String((b.dataset.access === 'on') === (pageAccess === true)));
+  });
+}
 function openSettings() {
   renderDefaultPageSelect();
   renderThemeControl();
+  renderPageAccessControl();
   renderShortcut();
   $('settings-version').textContent = `OmniBar ${chrome.runtime.getManifest().version}`;
   openSheet('settings', $('btn-settings'));
@@ -810,7 +826,18 @@ function bindListeners() {
   document.addEventListener('contextmenu', hideCtxMenu);
   document.addEventListener('scroll', hideCtxMenu, true);
 
+  // Page access notice
+  $('page-allow').addEventListener('click', () => setPageAccess(true));
+  $('page-notnow').addEventListener('click', () => setPageAccess(false));
+  $('page-turnon').addEventListener('click', e => { e.preventDefault(); setPageAccess(true); });
+
   // Settings
+  $('settings-page-access').addEventListener('click', e => {
+    const access = e.target.closest('[data-access]')?.dataset.access;
+    if (!access) return;
+    setPageAccess(access === 'on');
+    renderPageAccessControl();
+  });
   $('settings-theme').addEventListener('click', e => {
     const mode = e.target.closest('[data-mode]')?.dataset.mode;
     if (!mode) return;

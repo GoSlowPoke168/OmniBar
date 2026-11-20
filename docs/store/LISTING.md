@@ -19,7 +19,7 @@ Copy each block into the matching field of the Developer Dashboard.
 >
 > • Add any web app — AI assistants, notes, docs, chat, music — and open it with one click
 > • Reorder, edit or remove apps; open any app in a new tab or a separate side window instead
-> • Summarize page and Ask about page: send the current tab's address to the app you have open, in one click. OmniBar shows which page will be used ("Page: …") above the buttons
+> • Summarize page and Ask about page: send the current tab's address to the app you have open, in one click. OmniBar asks before reading the current page and shows which page will be used ("Page: …") above the buttons
 > • Default page: open your favorite app automatically when the sidebar opens
 > • Desktop or mobile layout per app
 > • Light and dark themes that follow Chrome, or pick one
@@ -51,7 +51,7 @@ Copy each block into the matching field of the Developer Dashboard.
 - **storage:**
   > Saves the user's app list, settings and app icons locally on the device so they persist between sessions.
 - **tabs:**
-  > Reads the active tab's address and title to show "Page: …" in the action bar and, only when the user clicks Summarize page or Ask about page, to insert that address into the open app. Also used to open apps in a new tab or window on request.
+  > After the user allows it in OmniBar's "Show the current page here?" prompt (changeable in Settings), reads the active tab's address and title to show "Page: …" in the action bar and, only when the user clicks Summarize page or Ask about page, to insert that address into the open app. Also used to open apps in a new tab or window on request.
 - **declarativeNetRequest:**
   > Many websites send X-Frame-Options or Content-Security-Policy headers that stop them from displaying inside another page. OmniBar uses a session rule, limited to requests that don't belong to a browser tab (OmniBar's side panel), to remove those two headers so the user's chosen apps can display in the side panel. Normal browser tabs are not affected.
 - **Host permission (<all_urls>):**
@@ -64,7 +64,7 @@ Justification (if asked):
 > All JavaScript ships in the package. The web apps users add are loaded from their own websites inside an iframe in the side panel; that content is isolated from extension APIs.
 
 **Data usage** (check these):
-- **Web history:** the active tab's address and title, used to show "Page: …" and sent only to the user's chosen app when they click Summarize page or Ask about page.
+- **Web history:** with the user's permission (asked in the extension before any read), the active tab's address and title, used to show "Page: …" and sent only to the user's chosen app when they click Summarize page or Ask about page.
 - **Website content:** the visible text of the app open in the side panel is checked on the device for a few known sign-in error messages. Nothing is stored or sent.
 
 Leave all other data types unchecked.
