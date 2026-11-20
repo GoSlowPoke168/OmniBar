@@ -1,3 +1,4 @@
 _metadata/
 .superpowers/
 dist/
+docs/store/*.webm

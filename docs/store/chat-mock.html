@@ -17,6 +17,7 @@
     li { margin: 3px 0; }
     code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--bubble); padding: 1px 5px; border-radius: 4px; }
     .dim { color: var(--dim); }
+    .greet { margin: auto; font-size: 20px; font-weight: 600; color: var(--dim); }
     .box { margin: 8px 12px 12px; border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; color: var(--dim); }
   </style>
 </head>
@@ -47,9 +48,28 @@
           <ul><li>Add, reorder and remove apps; open them in the sidebar, a new tab or a side window.</li>
             <li>One-click <b>Summarize page</b> and <b>Ask about page</b> for the current tab.</li>
             <li>Light and dark themes, and <code>Alt+Z</code> to open or close it.</li></ul>
-        </div>`
+        </div>`,
+      live: `<div class="greet">What can I help with?</div>`
     };
-    document.getElementById('chat').innerHTML = chats[location.hash.slice(1)] || chats.install;
+    const $chat = document.getElementById('chat');
+    $chat.innerHTML = chats[location.hash.slice(1)] || chats.install;
+
+    // "live" variant: react to OmniBar's Summarize click like a real app would (for the demo video)
+    window.addEventListener('message', e => {
+      if (e.data?.type !== 'omnibar-insert' || !$chat.querySelector('.greet')) return;
+      e.source.postMessage({ type: 'omnibar-insert-result', ok: true }, '*');
+      const me = document.createElement('div');
+      me.className = 'me';
+      me.textContent = e.data.text;
+      $chat.innerHTML = '';
+      $chat.appendChild(me);
+      const answer = document.createElement('div');
+      answer.innerHTML = chats.summary.slice(chats.summary.indexOf('<div>\n'));
+      const parts = [...answer.firstElementChild.children];
+      answer.firstElementChild.replaceChildren();
+      $chat.appendChild(answer);
+      parts.forEach((part, i) => setTimeout(() => answer.firstElementChild.appendChild(part), 900 + i * 450));
+    });
   </script>
 </body>
 

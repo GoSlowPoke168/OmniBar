@@ -27,6 +27,18 @@
     .side-head img { width: 16px; height: 16px; }
     .side-head span:last-child { margin-left: auto; color: var(--dim); font-weight: 400; font-size: 15px; }
     iframe { flex: 1; width: 100%; border: none; }
+    /* Demo video only: drawn pointer (recordings don't show the real one) and closing title card */
+    #cursor { position: fixed; left: 0; top: 0; width: 22px; z-index: 10; pointer-events: none; display: none;
+              transition: transform 600ms cubic-bezier(.3, 0, .2, 1); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+    #cursor.click { animation: press 180ms ease; }
+    @keyframes press { 50% { scale: .82; } }
+    #endcard { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; background: #1f1f1f; color: #ececec;
+               font-family: 'Geist', system-ui, sans-serif; text-align: center; animation: fade 500ms ease; }
+    #endcard img { width: 112px; }
+    #endcard h1 { font-size: 64px; font-weight: 700; letter-spacing: -.02em; margin-top: 12px; }
+    #endcard p { font-size: 24px; color: #b4b4b8; margin-top: 8px; }
+    @keyframes fade { from { opacity: 0; } }
+    @font-face { font-family: 'Geist'; src: url(/fonts/Geist-Variable.woff2) format('woff2'); font-weight: 100 900; }
   </style>
 </head>
 
@@ -48,9 +60,19 @@
       <iframe id="sidebar" src="/sidebar.html"></iframe>
     </div>
   </div>
+  <svg id="cursor" viewBox="0 0 22 30"><path d="M2 2v22l6-5.5 4.2 9.3 3.6-1.6-4.1-9.1H20z" fill="#fff" stroke="#000" stroke-width="1.6" stroke-linejoin="round" /></svg>
+  <div id="endcard"><div><img src="/icons/icon128.png" alt=""><h1>OmniBar</h1><p>Your favorite web apps, one click away in the side panel.</p></div></div>
   <script>
     const dark = matchMedia('(prefers-color-scheme: dark)').matches;
     document.getElementById('page').src = `bg-github-${dark ? 'dark' : 'light'}.png`;
+
+    // Demo video helpers, driven by docs/store/record-demo.js
+    const $cursor = document.getElementById('cursor');
+    window.demo = {
+      move(x, y) { $cursor.style.display = 'block'; $cursor.style.transform = `translate(${x - 2}px, ${y - 2}px)`; },
+      press() { $cursor.classList.remove('click'); void $cursor.offsetWidth; $cursor.classList.add('click'); },
+      end() { $cursor.style.display = 'none'; document.getElementById('endcard').style.display = 'grid'; }
+    };
   </script>
 </body>
 
