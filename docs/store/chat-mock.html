@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <!-- Neutral stand-in for an AI chat app, used only to make store screenshots -->
+  <style>
+    :root { color-scheme: light dark; --bg: #faf9f6; --text: #26251f; --dim: #6b6a63; --bubble: #ecebe6; --border: #dcdbd4; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #262624; --text: #ecebe6; --dim: #a7a69f; --bubble: #353430; --border: #45443f; } }
+    * { box-sizing: border-box; margin: 0; }
+    body { font: 14px/1.55 system-ui, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1; overflow: hidden; padding: 18px 16px 8px; display: flex; flex-direction: column; gap: 14px; }
+    .me { align-self: flex-end; max-width: 85%; background: var(--bubble); padding: 9px 13px; border-radius: 14px; overflow-wrap: anywhere; }
+    h4 { font-size: 14.5px; margin: 6px 0 2px; }
+    ol, ul { padding-left: 20px; }
+    li { margin: 3px 0; }
+    code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--bubble); padding: 1px 5px; border-radius: 4px; }
+    .dim { color: var(--dim); }
+    .box { margin: 8px 12px 12px; border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; color: var(--dim); }
+  </style>
+</head>
+
+<body>
+  <main id="chat"></main>
+  <div class="box">Reply…</div>
+  <script>
+    const chats = {
+      install: `
+        <div class="me">How do I install a Chrome extension from GitHub?</div>
+        <div>
+          <p>Here's how to install an unpacked extension from GitHub:</p>
+          <h4>1. Download the code</h4>
+          <p>On the repo page, click <b>Code → Download ZIP</b>, then extract it.</p>
+          <h4>2. Open the extensions page</h4>
+          <p>Go to <code>chrome://extensions</code> and turn on <b>Developer mode</b>.</p>
+          <h4>3. Load it</h4>
+          <p>Click <b>Load unpacked</b> and pick the folder that contains <code>manifest.json</code>.</p>
+          <p class="dim" style="margin-top:8px">The extension appears in your toolbar. Pin it for quick access.</p>
+        </div>`,
+      summary: `
+        <div class="me">Please summarize the webpage at &lt;pageUrl&gt;https://github.com/GoSlowPoke168/OmniBar&lt;/pageUrl&gt; using precise and concise language. Use headers and bulleted lists in the summary, to make it scannable. Maintain the meaning and factual accuracy.</div>
+        <div>
+          <h4>OmniBar: overview</h4>
+          <ul><li>A Chrome extension that docks your web apps in the browser's side panel.</li><li>Free and open source under the MIT license.</li></ul>
+          <h4>Key features</h4>
+          <ul><li>Add, reorder and remove apps; open them in the sidebar, a new tab or a side window.</li>
+            <li>One-click <b>Summarize page</b> and <b>Ask about page</b> for the current tab.</li>
+            <li>Light and dark themes, and <code>Alt+Z</code> to open or close it.</li></ul>
+        </div>`
+    };
+    document.getElementById('chat').innerHTML = chats[location.hash.slice(1)] || chats.install;
+  </script>
+</body>
+
+</html>
