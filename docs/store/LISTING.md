@@ -35,7 +35,7 @@ Copy each block into the matching field of the Developer Dashboard.
 
 **Graphics:**
 - Store icon: comes from `icons/icon128.png` in the package (96×96 artwork with 16 px padding)
-- Screenshots (1280×800): `docs/store/screenshot-1-chat-dark.png`, `docs/store/screenshot-2-summarize-light.png`, `docs/store/screenshot-3-settings-light.png`
+- Screenshots (1280×800): `docs/store/screenshot-1-chat-dark.png`, `docs/store/screenshot-2-summarize-dark.png`, `docs/store/screenshot-3-settings-dark.png`
 - Small promo tile (440×280): `docs/store/promo-440x280.png`
 
 ## Privacy practices tab
