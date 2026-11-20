@@ -6,7 +6,7 @@ A customizable sidebar extension for Chromium-based browsers like Google Chrome,
 
 Originally created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
 
-https://github.com/user-attachments/assets/b5170fb9-7214-44a5-bc6a-a89048721483
+https://github.com/user-attachments/assets/425baec1-02f0-4161-9ef3-0ae854397c3e
 
 ## Features
 
