@@ -37,7 +37,7 @@ Copy each block into the matching field of the Developer Dashboard.
 - Store icon: comes from `icons/icon128.png` in the package (96×96 artwork with 16 px padding)
 - Screenshots (1280×800) captured in Chrome: `docs/store/screenshot-1-chat-dark.png` (Ask about page with ChatGPT), `docs/store/screenshot-2-summarize-dark.png` (Summarize page with Claude), and `docs/store/screenshot-3-settings-dark.png` (Settings).
 - Small promo tile (440×280): `docs/store/promo-440x280.png`
-- YouTube video (optional): upload `docs/store/omnibar-store-demo-raw.mp4` to YouTube (Public or Unlisted), then paste its link. The MP4 is the selected unedited recording of OmniBar and ChatGPT.
+- YouTube video (optional): paste [the OmniBar demo URL](https://youtu.be/_A6NavuuatI) into the promotional video field.
 
 ## Privacy practices tab
 

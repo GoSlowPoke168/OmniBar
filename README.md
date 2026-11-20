@@ -4,7 +4,7 @@ A customizable sidebar extension for Chromium-based browsers like Google Chrome,
 
 Created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
 
-[Watch the OmniBar demo (1:14, MP4)](docs/store/omnibar-store-demo-raw.mp4)
+[Watch the OmniBar demo on YouTube (1:14)](https://youtu.be/_A6NavuuatI)
 
 ## Features
 
