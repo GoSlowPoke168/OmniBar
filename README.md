@@ -4,9 +4,9 @@
 
 A customizable sidebar extension for Chromium-based browsers like Google Chrome, Microsoft Edge, Brave, and Opera / Opera GX that allows you to dock your favorite web applications directly into the browser's side panel. 
 
-Created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
+Originally created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
 
-[Watch the OmniBar demo on YouTube (1:14)](https://youtu.be/_A6NavuuatI)
+https://github.com/user-attachments/assets/b5170fb9-7214-44a5-bc6a-a89048721483
 
 ## Features
 
