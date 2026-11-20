@@ -1,67 +1,48 @@
 # OmniBar
 
-A customizable sidebar extension for Chromium-based browsers like Google Chrome, Microsoft Edge, Brave, and Opera / Opera GX that allows you to dock your favorite web applications directly into the browser's side panel. 
+![OmniBar — Your favorite web apps, right beside your work](docs/store/marquee-1400x560.png)
 
-Created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
+A customizable sidebar extension for Firefox and Chromium-based browsers that keeps web apps and AI assistants one click away.
 
-![OmniBar Demonstration](assets/demo.png)
+Originally created as a replacement for the Microsoft Edge sidebar. The upstream demo shows the Chromium edition.
+
+https://github.com/user-attachments/assets/425baec1-02f0-4161-9ef3-0ae854397c3e
 
 ## Features
 
-- **Customizable App Dock:** Add, edit, remove, and reorder your favorite web apps via a sleek, drag-and-drop interface.
-- **Global Toggle Shortcut:** Quickly open and close the sidebar using a customizable keyboard shortcut (default: `Alt+Z`).
-- **Contextual Copy Utilities:** Includes a one-click header utility to instantly copy the active tab's URL to your clipboard for easy pasting into docked AI tools.
-- **Saved Preferences:** Your custom list of web apps is automatically saved to local storage, ensuring your custom setup remains intact even after restarting the browser.
+- **App dock.** Add, edit, remove, and drag to reorder apps. Right-click an app to open it in a tab or side window, or to sign in separately.
+- **Default page.** Choose an app to open automatically with the sidebar. Use the toolbar button or `Alt+Z` to return to the dock.
+- **Page actions.** Allow tab access to copy a summary prompt, question prompt, or the current page link. Paste the prompt into the app you want to use.
+- **Appearance.** Follow the system theme or choose light or dark mode.
+- **Local settings.** OmniBar saves your app list and preferences on your device. Import or export your apps from Settings.
 
-## How to Use
+## Build both browser editions
 
-- Click an icon to open it in the sidebar
-- Right-click an icon to edit, remove, or open elsewhere
-- Click ✎ to enter edit mode & drag to reorder
-- Click + to add a new app
+Run `python3 build.py` (or `.\build.ps1` in PowerShell with Python installed). The archives are written to `dist/omnibar-firefox.zip` and `dist/omnibar-chromium.zip`. Pass `--browser firefox` or `--browser chromium` to the Python command to build one edition.
 
-## Compatibility
+## Install in Chromium
 
-| Browser | Support Status |
-| :--- | :--- |
-| **Google Chrome** | ![Chrome Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=googlechrome&logoColor=white) |
-| **Microsoft Edge** | ![Edge Supported](https://img.shields.io/badge/Supported-success?style=flat-square) |
-| **Brave** | ![Brave Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=brave&logoColor=white) |
-| **Opera / Opera GX** | ![Opera Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=opera&logoColor=white) |
-| **Mozilla Firefox** | ![Firefox Planned](https://img.shields.io/badge/Planned-orange?style=flat-square&logo=firefox&logoColor=white) |
+Extract `dist/omnibar-chromium.zip`, open `chrome://extensions`, enable **Developer mode**, and click **Load unpacked**. Select the extracted directory containing `manifest.json`. Press `Alt+Z` or click OmniBar in the toolbar to open its side panel.
 
-*Note: This extension relies on the Manifest V3 `sidePanel` API. Browsers lacking support for this specific API (like Mozilla Firefox) cannot run the extension currently, though Firefox support is planned for the future.*
+## Install in Firefox
 
-## Installation
+1. Open Firefox 128 or later and go to `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on** and select the root `manifest.json` or the manifest from the extracted Firefox archive.
+3. Click OmniBar in the toolbar or press `Alt+Z` to open the dock. To change the shortcut, use **Settings → Shortcut → Change**.
 
-This extension is intended to be loaded as an unpacked extension in Developer Mode for now. In the future, there are plans to publish it to the browser extension stores.
+Firefox removes temporary add-ons when it restarts. Load the manifest again to continue testing.
 
-### General Steps
+## Browser behavior
 
-1. **Download the code:** Download the latest release `.zip` file from the Releases page (or clone the repository) and extract it to a folder on your computer.
-2. Open your browser and navigate to the Extensions page (see the [Browser-Specific Links](#browser-specific-links) below).
-3. Enable **Developer mode**.
-4. Click the **Load unpacked** button.
-5. Select the extracted folder containing this extension's source code.
-6. (Optional) Configure the keyboard shortcut by navigating to the Shortcuts page.
+Chromium keeps the dock visible beside its embedded apps and supports prompt insertion, a loading indicator, and a per-app desktop viewport.
 
-### Browser-Specific Links
+### Firefox
 
-| Browser | Extensions Page | Shortcuts Page |
-| :--- | :--- | :--- |
-| **Google Chrome** | `chrome://extensions/` | `chrome://extensions/shortcuts` |
-| **Microsoft Edge** | `edge://extensions/` | `edge://extensions/shortcuts` |
-| **Brave** | `brave://extensions/` | `brave://extensions/shortcuts` |
-| **Opera / Opera GX** | `opera://extensions/` | `opera://extensions/shortcuts` |
+Apps open as native sidebar pages, with OmniBar’s app icons and settings visible beside them. The pop-out button hides the dock in the same sidebar. For Claude it also switches from `/new` to `/recents`. Firefox may ask for access to a custom site before it can display the dock alongside it. Use the toolbar button or `Alt+Z` to return to the dock. If Firefox has suspended OmniBar and the first shortcut press closes the current app, press it again to reopen the dock.
 
+## Privacy
 
-## Technical Notes
-
-To allow external websites to load inside the sidebar's `<iframe>` context, this extension utilizes the `declarativeNetRequest` API to modify HTTP response headers. However, some websites might not connect and load due to client-side bot-mitigation techniques (such as Cloudflare Turnstile), which block rendering within an iframe.
-
-## TODO
-
-- [ ] Add a page button to extract context from the current page
+OmniBar has no servers, accounts, analytics, or ads. See the [Firefox privacy policy](PRIVACY.md) or the [Chromium privacy policy](chromium/PRIVACY.md).
 
 ## Support the Project
 If you find this plugin useful, please leave a star on GitHub or consider supporting its development!
@@ -70,4 +51,4 @@ If you find this plugin useful, please leave a star on GitHub or consider suppor
 
 ## License
 
-[![GitHub License](https://img.shields.io/github/license/goslowpoke168/omnibar?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1zY2FsZSI+PHBhdGggZD0ibTE2IDE2IDMtOCAzIDhjLS44Ny42NS0xLjkyIDEtMyAxcy0yLjEzLS4zNS0zLTFaIi8+PHBhdGggZD0ibTIgMTYgMy04IDMgOGMtLjg3LjY1LTEuOTIgMS0zIDFzLTIuMTMtLjM1LTMtMVoiLz48cGF0aCBkPSJNNyAyMWgxMCIvPjxwYXRoIGQ9Ik0xMiAzdjE4Ii8+PHBhdGggZD0iTTMgN2gyYzIgMCA1LTEgNy0yIDIgMSA1IDIgNyAyaDIiLz48L3N2Zz4=)](https://github.com/GoSlowPoke168/omnibar/blob/master/LICENSE)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge&logo=gnu&logoColor=white)](LICENSE)

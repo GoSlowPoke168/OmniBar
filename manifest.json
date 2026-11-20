@@ -1,21 +1,13 @@
 {
   "manifest_version": 3,
   "name": "OmniBar",
-  "version": "1.0.0",
-  "description": "A customizable sidebar for your favorite AI tools and web apps.",
+  "version": "2.0.0",
+  "description": "Keep your web apps and AI assistants one click away in the Firefox sidebar.",
   "permissions": [
-    "sidePanel",
     "storage",
-    "tabs",
-    "windows",
-    "declarativeNetRequest"
+    "clipboardWrite",
+    "scripting"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "side_panel": {
-    "default_path": "sidebar.html"
-  },
   "action": {
     "default_title": "Open OmniBar",
     "default_icon": {
@@ -34,20 +26,67 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
-  },
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "strip_frame_headers",
-        "enabled": true,
-        "path": "rules.json"
-      }
+    "scripts": [
+      "background.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*",
+        "https://grok.com/*",
+        "https://chat.deepseek.com/*",
+        "https://images.google.com/*",
+        "https://www.google.com/*"
+      ],
+      "js": [
+        "app-sidebar.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "sidebar_action": {
+    "default_title": "OmniBar",
+    "default_panel": "sidebar.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "open_at_install": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "omnibar@zarnuq",
+      "strict_min_version": "128.0"
+    }
+  },
+  "optional_permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*",
+    "https://grok.com/*",
+    "https://chat.deepseek.com/*",
+    "https://images.google.com/*",
+    "https://www.google.com/*",
+    "https://www.google.com/s2/favicons*",
+    "https://t0.gstatic.com/faviconV2*",
+    "https://t1.gstatic.com/faviconV2*",
+    "https://t2.gstatic.com/faviconV2*",
+    "https://t3.gstatic.com/faviconV2*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ]
 }

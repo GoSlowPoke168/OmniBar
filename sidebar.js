@@ -1,510 +1,393 @@
+const extensionApi = browser;
+
 /* ─────────────────────────────────────────────
    OmniBar
 ───────────────────────────────────────────── */
 
 const DEFAULT_APPS = [
-  { id: uid(), name: 'Claude', url: 'https://claude.ai/new' },
+  { id: uid(), name: 'Claude', url: 'https://claude.ai/recents' },
   { id: uid(), name: 'Gemini', url: 'https://gemini.google.com' },
   { id: uid(), name: 'ChatGPT', url: 'https://chatgpt.com' },
   { id: uid(), name: 'Grok', url: 'https://grok.com' },
-  { id: uid(), name: 'Deepseek', url: 'https://chat.deepseek.com/' },
   { id: uid(), name: 'Google Image Search', url: 'https://images.google.com/' }
 ];
 
 // States
-let apps = [];
-let activeId = null;
-let panelOpen = false;
-let editMode = false;
-let editingId = null;
-let dragSrcIdx = null;
-let ctxApp = null;
-let loadTimer = null;
+let windowId = null;
+let pageAccess;
+let pageContextRequest = 0;
+let appLocation = 'embedded';
 
 // DOM refs
-const $content = document.getElementById('content-panel');
-const $frame = document.getElementById('app-frame');
-const $spinner = document.getElementById('load-spinner');
-const $blocked = document.getElementById('blocked-msg');
-const $icons = document.getElementById('app-icons');
-const $overlay = document.getElementById('modal-overlay');
-const $mTitle = document.getElementById('modal-title');
-const $mName = document.getElementById('modal-name');
-const $mUrl = document.getElementById('modal-url');
-const $ctxMenu = document.getElementById('ctx-menu');
-const $settingsOverlay = document.getElementById('settings-overlay');
-const $settingsFile = document.getElementById('settings-import-file');
-// Header
-const $panelHeader = document.getElementById('panel-header');
-const $panelName = document.getElementById('panel-app-name');
-const $panelUrlText = document.getElementById('panel-url-text');
-
+const $empty = $('empty-state');
+const $editHint = $('edit-hint');
+const $settingsFile = $('settings-import-file');
+const $appLocation = $('settings-app-location');
+const $actionTitle = $('action-page-title');
+const $actionBtns = $('action-btns');
 // Init
 async function init() {
-  let windowId = null;
-  try {
-    const win = await chrome.windows.getCurrent();
-    windowId = win?.id;
-  } catch (_) { }
-
-  if (windowId) {
-    chrome.runtime.sendMessage({ type: 'panel-opened', windowId }).catch(() => { });
-  }
-
-  const stored = await chrome.storage.local.get('apps');
+  const win = await browser.windows.getCurrent();
+  windowId = win.id;
+  const stored = await browser.storage.local.get(['apps', 'defaultAppId', 'icons', 'pageAccess', 'appLocation']);
   apps = Array.isArray(stored.apps) ? stored.apps : DEFAULT_APPS;
+  defaultAppId = stored.defaultAppId ?? null;
+  iconCache = Object.assign(Object.create(null), stored.icons);
+  pageAccess = stored.pageAccess;
+  appLocation = stored.appLocation === 'sidebar' ? 'sidebar' : 'embedded';
+  $appLocation.value = appLocation;
+  if (pageAccess === true && !await browser.permissions.contains({ permissions: ['tabs'] })) {
+    pageAccess = false;
+  }
+  syncDefaultAppId();
   renderStrip();
   bindListeners();
+  refreshPageContext();
+  refreshIcons();
 
-  // When the user closes the panel via the browser's own X button,
-  // notify background.js so the hotkey toggle state stays accurate.
-  window.addEventListener('pagehide', () => {
-    if (windowId) {
-      chrome.runtime.sendMessage({ type: 'panel-closed', windowId }).catch(() => { });
-    }
-  });
+  const pending = await browser.runtime.sendMessage({ type: 'dock-ready', windowId });
+  if (pending) {
+    if (pending.type === 'settings') openSettings();
+    if (pending.type === 'add') openModal();
+    if (pending.type === 'edit') toggleEditMode();
+    const selected = pending.type === 'app' && apps.find(app => app.url === pending.url);
+    if (selected) launchApp(selected, false, false);
+    return;
+  }
+  const defaultApp = apps.find(a => a.id === defaultAppId);
+  if (defaultApp) launchApp(defaultApp, true, false);
 }
 
-// Utilities
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
-}
-function getFavicon(url) {
+function webUrl(value) {
   try {
-    return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`;
-  } catch { return ''; }
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
+  } catch (_) {
+    return null;
+  }
 }
-function save() {
-  chrome.storage.local.set({ apps });
+async function getActiveTab() {
+  const [tab] = await browser.tabs.query({ active: true, windowId });
+  return tab;
 }
 
-// Render app icons
-function renderStrip() {
-  $icons.innerHTML = '';
-  if (editMode) $icons.classList.add('edit-mode');
-  else $icons.classList.remove('edit-mode');
+function syncContentState() {
+  $editHint.classList.toggle('hidden', !editMode);
+  $empty.classList.toggle('hidden', editMode);
+  $empty.textContent = apps.length ? 'Choose an app on the right to open it here.' : 'Add an app with + to get started.';
+}
 
-  document.getElementById('btn-edit').classList.toggle('active', editMode);
-
-  apps.forEach((app, i) => {
-    const el = document.createElement('div');
-    el.className = 'app-icon' + (panelOpen && app.id === activeId ? ' active' : '');
-    el.dataset.id = app.id;
-    el.dataset.idx = i;
-    el.dataset.tooltip = app.name;
-    el.draggable = true;
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
-
-    // Favicon
-    const img = document.createElement('img');
-    img.src = getFavicon(app.url);
-    img.alt = app.name;
-
-    // Letter fallback
-    const fb = document.createElement('span');
-    fb.className = 'fallback';
-    fb.textContent = (app.name.trim()[0] ?? '?').toUpperCase();
-
-    img.addEventListener('error', () => {
-      img.style.display = 'none';
-      fb.style.display = 'flex';
-    });
-
-    el.appendChild(img);
-    el.appendChild(fb);
-
-    // Remove icon (edit mode)
-    if (editMode) {
-      const badge = document.createElement('button');
-      badge.className = 'remove-badge';
-      badge.textContent = '✕';
-      badge.title = 'Remove';
-      badge.addEventListener('click', e => { e.stopPropagation(); removeApp(app.id); });
-      el.appendChild(badge);
+// Sites that require a top-level page can take over the native sidebar.
+async function openAppDirectly(app, startup = false) {
+  try {
+    let url = app.url;
+    if (url && hostOf(url) === 'claude.ai' && new URL(url).pathname === '/new') {
+      url = new URL('/recents', url).href;
     }
-
-    // Click: open or close
-    el.addEventListener('click', () => { if (!editMode) toggleApp(app); });
-    el.addEventListener('keydown', e => { if (e.key === 'Enter' && !editMode) toggleApp(app); });
-    el.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); showCtxMenu(e, app); });
-    el.addEventListener('dragstart', e => onDragStart(e, i));
-    el.addEventListener('dragover', e => onDragOver(e, el));
-    el.addEventListener('drop', e => onDrop(e, i));
-    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
-    el.addEventListener('dragend', () => cleanDrag());
-
-    $icons.appendChild(el);
-  });
+    await browser.runtime.sendMessage({ type: 'open-app', windowId, url, startup });
+  } catch (_) {
+    showToast("Couldn't open this app in the sidebar.", 'error');
+  }
 }
 
-// Open / toggle app
-function toggleApp(app) {
-  if (panelOpen && activeId === app.id) { closePanel(); return; }
-  openApp(app);
+async function setPageAccess(allowed) {
+  pageAccess = allowed && await browser.permissions.request({ permissions: ['tabs'] });
+  await browser.storage.local.set({ pageAccess });
+  refreshPageContext();
+  renderPageAccessControl();
 }
 
-function openApp(app) {
-  activeId = app.id;
-  panelOpen = true;
-
-  // Show content panel
-  $content.classList.remove('hidden');
-
-  // Update browser title bar & top header
-  document.title = app.name;
-  $panelName.textContent = app.name;
-  try { $panelUrlText.textContent = new URL(app.url).hostname; } catch { $panelUrlText.textContent = app.url; }
-  $panelHeader.classList.remove('hidden');
-
-  // Reset state
-  clearTimeout(loadTimer);
-  $frame.style.display = 'block';
-  $blocked.classList.add('hidden');
-  $spinner.classList.remove('hidden');
-
-  // Skip the onload that fires for src='' (about:blank), only handle the real URL load
-  let realLoad = false;
-  $frame.onload = () => {
-    if (!realLoad) return;
-    $spinner.classList.add('hidden');
-    clearTimeout(loadTimer);
-  };
-
-  $frame.src = '';
-  requestAnimationFrame(() => {
-    realLoad = true;
-    $frame.src = app.url;
-
-    // Blocked-site detection: if still loading after 8s, check if it actually loaded
-    loadTimer = setTimeout(() => {
-      $spinner.classList.add('hidden');
-      try {
-        const doc = $frame.contentDocument;
-        // If we can read location and it's still blank, the navigation likely failed
-        if (!doc || doc.location.href === 'about:blank') {
-          $frame.style.display = 'none';
-          $blocked.classList.remove('hidden');
-        }
-        // If we get here without an error, it's same-origin and loaded fine
-      } catch (_) {
-        // SecurityError = cross-origin page loaded successfully — this is normal
-      }
-    }, 8000);
-  });
-
-  renderStrip();
+async function refreshPageContext() {
+  const request = ++pageContextRequest;
+  $('action-bar').dataset.access = pageAccess === true ? 'on' : pageAccess === false ? 'off' : 'ask';
+  if (pageAccess !== true) return;
+  const tab = await getActiveTab();
+  if (request !== pageContextRequest) return;
+  const url = tab?.url ?? '';
+  const isWeb = /^https?:\/\//.test(url);
+  $actionTitle.textContent = isWeb ? (tab.title || hostOf(url)) : 'none';
+  $actionBtns.querySelectorAll('.btn').forEach(button => { button.disabled = !isWeb; });
+  if (isWeb) delete $actionBtns.dataset.tip;
+  else $actionBtns.dataset.tip = 'Open a regular web page first';
 }
 
-function closePanel() {
-  panelOpen = false;
-  activeId = null;
-
-  // Notify background so hotkey toggle state stays accurate
-  chrome.runtime.sendMessage({ type: 'panel-closed' }).catch(() => { });
-
-  clearTimeout(loadTimer);
-  $frame.onload = null;
-  $spinner.classList.add('hidden');
-  $blocked.classList.add('hidden');
-  $frame.style.display = 'block';
-  $panelHeader.classList.add('hidden');
-
-  // Hide content but keep as flex spacer (so strip stays right)
-  $content.classList.add('hidden');
-
-  // Reset title
-  document.title = 'OmniBar';
-
-  $frame.src = '';
-  renderStrip();
-}
-
-// Open helpers
 function openInTab(url) {
-  chrome.tabs.create({ url });
+  browser.tabs.create({ url });
 }
-function openInWindow(url) {
-  chrome.windows.getCurrent({}, win => {
-    const w = 430, h = win.height || 900;
-    const x = (win.left || 0) + (win.width || 1440) - w - 8;
-    chrome.windows.create({ url, type: 'popup', width: w, height: h, left: x, top: win.top || 0 });
-  });
+async function openInWindow(url) {
+  const win = await browser.windows.get(windowId);
+  const width = 430;
+  const left = (win.left ?? 0) + (win.width ?? 1440) - width - 8;
+  await browser.windows.create({ url, type: 'popup', width, height: win.height || 900, left, top: win.top ?? 0 });
 }
 
-// Context menu
-function showCtxMenu(e, app) {
-  ctxApp = app;
-  const menuW = 170, menuH = 110;
-  $ctxMenu.style.left = `${Math.min(e.clientX, window.innerWidth - menuW)}px`;
-  $ctxMenu.style.top = `${Math.min(e.clientY, window.innerHeight - menuH)}px`;
-  $ctxMenu.classList.remove('hidden');
+async function copyPagePrompt(buildPrompt) {
+  if (pageAccess !== true) return;
+  try {
+    const tab = await getActiveTab();
+    if (pageAccess !== true) return;
+    if (!/^https?:\/\//.test(tab?.url ?? '')) {
+      showToast('Open a regular web page first.', 'error');
+      return;
+    }
+    await navigator.clipboard.writeText(buildPrompt(tab.url));
+    showToast('Copied. Paste into your app.', 'success');
+  } catch (_) {
+    showToast("Couldn't copy the prompt.", 'error');
+  }
 }
-function hideCtxMenu() { $ctxMenu.classList.add('hidden'); ctxApp = null; }
 
-// Modal
-function openModal(app = null) {
-  editingId = app?.id ?? null;
-  $mTitle.textContent = app ? 'Edit App' : 'Add Web App';
-  $mName.value = app?.name ?? '';
-  $mUrl.value = app?.url ?? '';
-  $overlay.classList.remove('hidden');
-  setTimeout(() => $mName.focus(), 50);
-}
-function closeModal() { $overlay.classList.add('hidden'); editingId = null; }
+// Add / edit dialog
 function saveModal() {
   const name = $mName.value.trim();
-  let url = $mUrl.value.trim();
-  if (!name || !url) return;
-  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const text = $mUrl.value.trim();
+  const url = webUrl(/^[a-z][a-z\d+.-]*:\/\//i.test(text) ? text : 'https://' + text);
+  if (!name || !url) {
+    showToast('Enter a valid HTTP or HTTPS address.', 'error');
+    return;
+  }
   if (editingId) {
     const a = apps.find(a => a.id === editingId);
     if (a) {
-      const urlChanged = a.url !== url;
       a.name = name;
       a.url = url;
-      if (activeId === a.id) {
-        document.title = a.name;
-        $panelName.textContent = a.name;
-        try { $panelUrlText.textContent = new URL(a.url).hostname; } catch { $panelUrlText.textContent = a.url; }
-        if (urlChanged) {
-          openApp(a); // Reload iframe with new URL
-        }
-      }
     }
   } else {
     apps.push({ id: uid(), name, url });
   }
-  save(); closeModal(); renderStrip();
+  save(); closeSheet(); renderStrip();
 }
 
 // Remove
 function removeApp(id) {
-  if (activeId === id) closePanel();
   apps = apps.filter(a => a.id !== id);
+  syncDefaultAppId();
   save(); renderStrip();
 }
 
 // Edit mode
 function toggleEditMode() {
   editMode = !editMode;
-  if (editMode && panelOpen) closePanel();
   renderStrip();
 }
 
 // Settings
-function openSettings() { $settingsOverlay.classList.remove('hidden'); }
-function closeSettings() { $settingsOverlay.classList.add('hidden'); }
-
-function exportApps() {
-  const json = JSON.stringify(apps, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(blob),
-    download: 'omnibar-apps.json'
-  });
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-let toastTimeoutId = null;
-function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.className = 'toast'; // Reset classes
-  if (type === 'success') {
-    toast.style.background = '#2e7d32';
-  } else if (type === 'error') {
-    toast.style.background = 'var(--danger)';
-  } else {
-    toast.style.background = 'var(--accent)';
-  }
-  toast.classList.add('show');
-
-  if (toastTimeoutId) clearTimeout(toastTimeoutId);
-  toastTimeoutId = setTimeout(() => {
-    toast.classList.remove('show');
-  }, 2500);
-}
 
 function importApps(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported) || !imported.every(a => a.name && a.url))
+      if (!Array.isArray(imported) || !imported.every(a => typeof a?.name === 'string' && a.name.trim() && webUrl(a.url)))
         throw new Error('Invalid format');
-      apps = imported.map(a => ({ id: a.id || uid(), name: String(a.name), url: String(a.url) }));
+      const ids = new Set();
+      apps = imported.map(a => {
+        const id = typeof a.id === 'string' && a.id && !ids.has(a.id) ? a.id : uid();
+        ids.add(id);
+        return { id, name: a.name, url: webUrl(a.url), ...(a.desktop === true && { desktop: true }) };
+      });
+      syncDefaultAppId();
       save();
-      if (panelOpen) closePanel();
-      renderStrip(); closeSettings();
-      showToast('Apps imported successfully!', 'success');
+      renderStrip(); closeSheet();
+      showToast('Apps imported', 'success');
     } catch (_) {
-      showToast('Failed to import: Invalid JSON format.', 'error');
+      showToast("Couldn't import: that file isn't an OmniBar export.", 'error');
     }
   };
   reader.readAsText(file);
 }
 
-function resetToDefaults() {
-  if (!confirm('Reset all apps to defaults? This cannot be undone.')) return;
+async function resetToDefaults() {
+  const ok = await confirmDialog({
+    title: 'Reset to defaults?',
+    body: "Your apps and their order will be replaced with the default list. This can't be undone.",
+    confirmLabel: 'Reset'
+  });
+  if (!ok) return;
   apps = DEFAULT_APPS.map(a => ({ ...a, id: uid() }));
+  defaultAppId = null;
   save();
-  if (panelOpen) closePanel();
   renderStrip();
-  closeSettings();
-  showToast('Reset to defaults successfully!', 'success');
-}
-
-// Drag & drop
-function onDragStart(e, idx) {
-  dragSrcIdx = idx;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => $icons.children[idx]?.classList.add('dragging'), 0);
-}
-function onDragOver(e, el) {
-  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.app-icon.drag-over').forEach(x => x.classList.remove('drag-over'));
-  el.classList.add('drag-over');
-}
-function onDrop(e, toIdx) {
-  e.preventDefault();
-  if (dragSrcIdx === null || dragSrcIdx === toIdx) return;
-  const [moved] = apps.splice(dragSrcIdx, 1);
-  apps.splice(toIdx, 0, moved);
-  save(); renderStrip();
-}
-function cleanDrag() {
-  dragSrcIdx = null;
-  document.querySelectorAll('.app-icon.dragging, .app-icon.drag-over')
-    .forEach(el => el.classList.remove('dragging', 'drag-over'));
+  closeSheet();
+  showToast('Apps reset to defaults', 'success');
 }
 
 // All listeners
 function bindListeners() {
-  // Blocked-site fallbacks
-  document.getElementById('blocked-newtab').addEventListener('click', () => {
-    const a = apps.find(a => a.id === activeId); if (a) openInTab(a.url);
+  $icons.addEventListener('dragover', onDragOver);
+  $icons.addEventListener('drop', onDrop);
+
+  // Tooltips
+  document.addEventListener('pointerover', e => {
+    const el = e.target.closest?.('[data-tip]');
+    if (el === tipEl) return;
+    hideTip();
+    if (!el) return;
+    tipEl = el;
+    tipTimer = setTimeout(() => showTip(el), 400);
   });
-  document.getElementById('blocked-window').addEventListener('click', () => {
-    const a = apps.find(a => a.id === activeId); if (a) openInWindow(a.url);
-  });
+  document.documentElement.addEventListener('pointerleave', hideTip);
+  ['pointerdown', 'keydown', 'wheel'].forEach(t => document.addEventListener(t, hideTip, true));
 
   // Strip footer
-  document.getElementById('btn-add').addEventListener('click', () => openModal());
-  document.getElementById('btn-edit').addEventListener('click', toggleEditMode);
-  document.getElementById('btn-settings').addEventListener('click', openSettings);
-
-  // Header buttons (top prototype)
-  document.getElementById('hdr-close').addEventListener('click', closePanel);
-  document.getElementById('hdr-newtab').addEventListener('click', () => {
-    const a = apps.find(a => a.id === activeId); if (a) openInTab(a.url);
+  $('btn-add').addEventListener('click', () => {
+    if (openSheetId === 'modal' && !editingId) closeSheet();
+    else openModal();
   });
-  document.getElementById('hdr-window').addEventListener('click', () => {
-    const a = apps.find(a => a.id === activeId); if (a) openInWindow(a.url);
-  });
-  // Page context buttons (URL & Selection)
-  const flashBtn = (btn, success = true) => {
-    btn.classList.add(success ? 'success' : 'danger');
-    setTimeout(() => btn.classList.remove(success ? 'success' : 'danger'), 1000);
-  };
-
-  document.getElementById('hdr-copyurl').addEventListener('click', () => {
-    const btn = document.getElementById('hdr-copyurl');
-    chrome.runtime.sendMessage({ type: 'get-active-tab-url' }, (res) => {
-      if (res && res.url) {
-        const text = `Here is the link to the page I am on:\n${res.url}`;
-        navigator.clipboard.writeText(text)
-          .then(() => flashBtn(btn, true))
-          .catch(() => flashBtn(btn, false));
-      } else {
-        flashBtn(btn, false);
-      }
-    });
+  $('btn-edit').addEventListener('click', () => { closeSheet(); toggleEditMode(); });
+  $('btn-settings').addEventListener('click', () => {
+    if (openSheetId === 'settings') closeSheet();
+    else openSettings();
   });
 
-  document.getElementById('hdr-refresh').addEventListener('click', () => {
-    if ($frame.src) {
-      const s = $frame.src;
-      $spinner.classList.remove('hidden');
-      $frame.src = ''; requestAnimationFrame(() => { $frame.src = s; });
-    }
+  // Page tools run in the dock before opening a web app.
+  $('act-summarize').addEventListener('click', () => {
+    copyPagePrompt(url => `Please summarize the webpage at <pageUrl>${url}</pageUrl> using precise and concise language. Use headers and bulleted lists in the summary, to make it scannable. Maintain the meaning and factual accuracy.`);
+  });
+  $('act-ask').addEventListener('click', () => {
+    copyPagePrompt(url => `Use the webpage at <pageUrl>${url}</pageUrl> as context for my question: `);
+  });
+  $('act-copy').addEventListener('click', () => copyPagePrompt(url => url));
+  browser.tabs.onActivated.addListener(info => {
+    if (info.windowId === windowId) refreshPageContext();
+  });
+  browser.tabs.onUpdated.addListener((id, info, tab) => {
+    if (tab.active && tab.windowId === windowId && (info.url || info.title)) refreshPageContext();
+  });
+  browser.permissions.onRemoved.addListener(({ permissions }) => {
+    if (!permissions?.includes('tabs')) return;
+    pageAccess = false;
+    browser.storage.local.set({ pageAccess });
+    refreshPageContext();
+    renderPageAccessControl();
   });
 
+  // Sheets
+  $sheetLayer.addEventListener('click', e => { if (e.target === $sheetLayer) closeSheet(); });
+  $confirmOverlay.addEventListener('click', e => { if (e.target === $confirmOverlay) confirmResolve?.(false); });
+  $('confirm-cancel').addEventListener('click', () => confirmResolve?.(false));
+  $('confirm-ok').addEventListener('click', () => confirmResolve?.(true));
 
-  // URL chip — click to copy full URL
-  const $urlChip = document.getElementById('panel-app-url');
-  $urlChip.addEventListener('click', async () => {
-    const a = apps.find(a => a.id === activeId);
-    if (!a) return;
-    try {
-      await navigator.clipboard.writeText(a.url);
-      $panelUrlText.textContent = 'Copied!';
-      $urlChip.classList.add('copied');
-      $urlChip.title = a.url;
-      setTimeout(() => {
-        const cur = apps.find(a => a.id === activeId);
-        if (cur) {
-          try { $panelUrlText.textContent = new URL(cur.url).hostname; } catch { $panelUrlText.textContent = cur.url; }
-        }
-        $urlChip.classList.remove('copied');
-        $urlChip.title = 'Click to copy URL';
-      }, 1500);
-    } catch (_) { /* clipboard access denied */ }
+  // Add / edit dialog
+  $('modal-close').addEventListener('click', () => closeSheet());
+  $('modal-cancel').addEventListener('click', () => closeSheet());
+  $mSave.addEventListener('click', saveModal);
+  [$mName, $mUrl].forEach(input => {
+    input.addEventListener('input', validateModal);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !$mSave.disabled) saveModal(); });
   });
-
-  // Modal
-  document.getElementById('modal-cancel').addEventListener('click', closeModal);
-  document.getElementById('modal-save').addEventListener('click', saveModal);
-  $overlay.addEventListener('click', e => { if (e.target === $overlay) closeModal(); });
-  document.getElementById('modal-url').addEventListener('keydown', e => { if (e.key === 'Enter') saveModal(); });
 
   // Context menu
   $ctxMenu.addEventListener('click', e => {
-    const action = e.target.dataset.action;
+    const action = e.target.closest('[data-action]')?.dataset.action;
     if (!action || !ctxApp) return;
     if (action === 'open-tab') openInTab(ctxApp.url);
     if (action === 'open-win') openInWindow(ctxApp.url);
+    if (action === 'signin') {
+      const url = ctxApp.url;
+      openInWindow(iconHost(url) === 'claude.ai' ? 'https://claude.ai/login' : url);
+    }
     if (action === 'edit') openModal(ctxApp);
     if (action === 'remove') removeApp(ctxApp.id);
     hideCtxMenu();
   });
-  document.addEventListener('click', hideCtxMenu);
+  document.addEventListener('click', e => { if (!$ctxMenu.contains(e.target)) hideCtxMenu(); });
   document.addEventListener('contextmenu', hideCtxMenu);
+  document.addEventListener('scroll', hideCtxMenu, true);
 
-  // Settings modal
-  document.getElementById('settings-close').addEventListener('click', closeSettings);
-  $settingsOverlay.addEventListener('click', e => { if (e.target === $settingsOverlay) closeSettings(); });
-  document.getElementById('settings-export').addEventListener('click', exportApps);
-  document.getElementById('settings-import').addEventListener('click', () => $settingsFile.click());
+  // Page access notice
+  $('page-allow').addEventListener('click', () => setPageAccess(true));
+  $('page-notnow').addEventListener('click', () => setPageAccess(false));
+  $('page-turnon').addEventListener('click', e => { e.preventDefault(); setPageAccess(true); });
+
+  // Settings
+  $appLocation.addEventListener('change', () => {
+    appLocation = $appLocation.value;
+    browser.storage.local.set({ appLocation });
+    syncContentState();
+  });
+  $('settings-page-access').addEventListener('click', e => {
+    const access = e.target.closest('[data-access]')?.dataset.access;
+    if (!access) return;
+    setPageAccess(access === 'on');
+  });
+  $('settings-theme').addEventListener('click', e => {
+    const mode = e.target.closest('[data-mode]')?.dataset.mode;
+    if (!mode) return;
+    OmniTheme.set(mode);
+    renderThemeControl();
+  });
+  $defaultPageSelect.addEventListener('change', e => { defaultAppId = e.target.value || null; save(); });
+  $('settings-close').addEventListener('click', () => closeSheet());
+  $('settings-export').addEventListener('click', exportApps);
+  $('settings-import').addEventListener('click', () => $settingsFile.click());
   $settingsFile.addEventListener('change', e => {
     if (e.target.files[0]) importApps(e.target.files[0]);
     e.target.value = '';
   });
-  document.getElementById('settings-reset').addEventListener('click', resetToDefaults);
+  $('settings-reset').addEventListener('click', resetToDefaults);
 
-  // Open shortcut page URL
-  document.getElementById('settings-shortcut-open').addEventListener('click', () => {
-    let targetUrl = 'chrome://extensions/shortcuts';
-    if (navigator.userAgent.includes('Edg/')) {
-      targetUrl = 'edge://extensions/shortcuts';
-    } else if (navigator.userAgent.includes('OPR/')) {
-      targetUrl = 'opera://extensions/shortcuts';
-    } else if (navigator.brave) {
-      targetUrl = 'brave://extensions/shortcuts';
-    }
-    chrome.tabs.create({ url: targetUrl });
+  $('settings-privacy').addEventListener('click', e => {
+    e.preventDefault();
+    openInTab(browser.runtime.getURL('privacy.html'));
   });
 
-  // Keyboard shortcuts
+  $('settings-shortcut-open').addEventListener('click', e => {
+    e.preventDefault();
+    browser.commands.openShortcutSettings();
+  });
+
+  // Escape closes the topmost layer first
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      if (!$settingsOverlay.classList.contains('hidden')) { closeSettings(); return; }
-      if (!$overlay.classList.contains('hidden')) { closeModal(); return; }
-      if (editMode) { toggleEditMode(); return; }
-      if (panelOpen) closePanel();
+    if (e.key !== 'Escape' || $defaultPageSelect.matches(':is(:open)')) return;
+    if (confirmResolve) return confirmResolve(false);
+    if (openSheetId) return closeSheet();
+    if (!$ctxMenu.classList.contains('hidden')) return hideCtxMenu();
+    if (editMode) return toggleEditMode();
+    });
+}
+
+function isActiveApp() {
+  return false;
+}
+
+async function allowDockOn(url, interactive) {
+  const match = `${url.protocol}//${url.hostname}/*`;
+  const builtin = browser.runtime.getManifest().content_scripts.some(script => script.matches.includes(match));
+  const permission = { origins: [match] };
+  const granted = interactive
+    ? await browser.permissions.request(permission)
+    : await browser.permissions.contains(permission);
+  if (!granted || builtin) return granted;
+
+  const id = `omnibar-site-${encodeURIComponent(match)}`;
+  const existing = await browser.scripting.getRegisteredContentScripts({ ids: [id] });
+  if (!existing.length) {
+    await browser.scripting.registerContentScripts([
+      { id, matches: [match], js: ['app-sidebar.js'], runAt: 'document_start' },
+    ]);
+  }
+  return true;
+}
+
+async function launchApp(app, startup = false, interactive = true) {
+  const url = webUrl(app.url);
+  if (!url) {
+    showToast('Enter a valid HTTP or HTTPS address.', 'error');
+    return;
+  }
+  try {
+    const entry = new URL(url);
+    if (appLocation === 'sidebar' || entry.hash || !await allowDockOn(entry, interactive)) {
+      await openAppDirectly(app, startup);
+      return;
     }
-  });
+    await browser.runtime.sendMessage({
+      type: 'open-native-dock', windowId, startup, app: { ...app, url }, apps, theme: OmniTheme.get(),
+    });
+  } catch (_) {
+    await openAppDirectly(app, startup);
+  }
 }
 
 // Boot

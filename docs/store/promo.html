@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>OmniBar promo tile</title>
+  <!-- 440x280 small promo tile for the Chrome Web Store -->
+  <style>
+    @font-face { font-family: 'Geist'; src: url(../../fonts/Geist-Variable.woff2) format('woff2'); font-weight: 100 900; }
+    * { box-sizing: border-box; margin: 0; }
+    body { width: 440px; height: 280px; overflow: hidden; background: #1f1f1f; color: #ececec; font-family: 'Geist', sans-serif;
+           display: flex; align-items: center; padding: 0 0 0 34px; position: relative; }
+    .text { flex: 1; }
+    .logo { width: 56px; height: 56px; margin-bottom: 14px; }
+    h1 { font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+    p { margin-top: 6px; font-size: 15.5px; color: #b4b4b8; line-height: 1.4; max-width: 220px; }
+    .strip { width: 64px; height: 280px; background: #272727; border-left: 1px solid #3a3a3a; display: flex; flex-direction: column;
+             align-items: center; gap: 12px; padding-top: 26px; }
+    .strip div { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; }
+    .strip .on { background: rgba(91, 156, 246, .16); outline: 2px solid rgba(91, 156, 246, .55); outline-offset: -1px; }
+    .strip img { width: 22px; height: 22px; }
+    .panel { width: 120px; height: 280px; background: #262624; padding: 26px 12px; display: flex; flex-direction: column; gap: 9px; }
+    .panel span { height: 7px; border-radius: 4px; background: #3a3936; }
+    .panel .me { align-self: flex-end; width: 70%; height: 22px; border-radius: 8px; }
+    .panel .pill { margin-top: auto; height: 20px; width: 78px; border-radius: 999px; background: #5b9cf6; }
+  </style>
+</head>
+
+<body>
+  <div class="text">
+    <img class="logo" src="../../icons/icon128.png" alt="">
+    <h1>OmniBar</h1>
+    <p>Your favorite web apps, one click away in the side panel.</p>
+  </div>
+  <div class="panel"><span class="me"></span><span></span><span style="width:80%"></span><span style="width:90%"></span><span style="width:60%"></span><span class="pill"></span></div>
+  <div class="strip">
+    <div class="on"><img src="https://www.google.com/s2/favicons?domain=claude.ai&sz=64" alt=""></div>
+    <div><img src="https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64" alt=""></div>
+    <div><img src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64" alt=""></div>
+  </div>
+</body>
+
+</html>
