@@ -16,7 +16,7 @@ All of this stays on your device, in your browser's extension storage. It is nev
 ## What OmniBar reads
 
 - **Current page context.** After you click **Allow** on "Show the current page here?", OmniBar reads the active tab’s address and title to show the **Page** label. **Summarize page** submits a prompt containing the address to the open chat app. **Ask about page** puts the address into the app’s prompt box for you to complete and send. OmniBar keeps no saved history of these page addresses or titles. You can turn these features off in Settings → Current page.
-- **Copy page link.** When you click this button, OmniBar reads the active tab’s address and copies it to your clipboard. This separate action works even when Current page is off.
+- **Copy page link.** When you click this button, OmniBar reads the active web page’s address and copies it to your clipboard. This separate action works even when Current page is off.
 - **Sign-in help.** OmniBar checks the sidebar app’s response status, hostname, and visible text for known sign-in errors. It watches for text changes for up to about 30 seconds after the app loads. If you open Claude in OmniBar’s separate sign-in window, OmniBar checks that window’s address to tell when Claude reaches its chat page. These checks happen on your device.
 
 OmniBar does not read or change pages in your normal browser tabs.
@@ -32,9 +32,8 @@ OmniBar does not sell or rent your data or use it for advertising. The developer
 
 - **Side panel (`sidePanel`):** to show OmniBar in the browser's side panel.
 - **Storage (`storage`):** to save your app list and settings on your device.
-- **Tabs (`tabs`):** to read the current tab’s address and title for the page actions, copy the address at your request, and detect when Claude reaches its chat page in the separate sign-in window.
 - **Declarative Net Request (`declarativeNetRequest`):** many sites send headers that block them from appearing inside other pages. OmniBar uses a session rule to remove those headers from subframe requests without a browser tab ID, including requests from the side panel. Regular tabs keep their response headers.
-- **Access to all websites:** your apps can be any website, so OmniBar needs access to load them in the side panel and to run its helper script inside them. The helper script only works inside OmniBar's side panel. It types the prompt when you click Summarize page or Ask about page, and checks for the sign-in messages described above.
+- **Access to all websites:** users can choose which sites to open in the side panel. Host access lets OmniBar load these sites and run its helper there. It also lets OmniBar read the current web page’s address and title for the page tools and detect when the separate Claude sign-in window reaches the chat page. The helper inserts prompts at your request and checks for known sign-in errors inside the panel.
 
 ## Deleting your data
 

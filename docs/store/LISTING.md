@@ -15,29 +15,24 @@ Copy each block into the matching field of the Developer Dashboard.
 > A customizable sidebar that keeps your favorite web apps one click away in Chrome's side panel.
 
 **Description:**
-> OmniBar docks the web apps you use most in Chrome's side panel, so they sit next to whatever page you're reading.
+> Keep your favorite web apps open beside your current tab. With OmniBar, you can take notes while you research, keep a tool handy, or ask an AI assistant for help without leaving your work.
 >
-> • Add any web app — AI assistants, notes, docs, chat, music — and open it with one click
-> • Reorder, edit or remove apps; open any app in a new tab or a separate side window instead
-> • Summarize page and Ask about page: send the current tab's address to the app you have open, in one click. OmniBar asks before reading the current page and shows which page will be used ("Page: …") above the buttons
-> • Copy page link: click the link icon to copy the current tab’s address to your clipboard
-> • Default page: open your favorite app automatically when the sidebar opens
-> • Desktop or mobile layout per app
-> • Light and dark themes that follow Chrome, or pick one
-> • Keyboard shortcut (Alt+Z by default) to open and close the sidebar
-> • Import and export your app list
+> • Build your own app dock. Add sites by URL, rename them, and drag them into the order you want.
+> • Keep your choice of AI chat within reach. Switch between ChatGPT, Claude, and Gemini while your work stays in view.
+> • Summarize the page you’re on. Send the current tab’s link to your chosen chat app with a summary prompt.
+> • Ask about the page. Start with its link already in the chat box, then add your own question.
+> • Customize your setup. Choose a default app, set mobile or desktop view for each app, pick a theme, and change the sidebar shortcut.
 >
-> Privacy: your app list and settings stay on your device. OmniBar has no accounts, servers, analytics or ads. App websites receive your browser’s requests directly. OmniBar sends app hostnames to Google to fetch their icons and checks the embedded app locally for known sign-in errors. Some sites need you to sign in in a separate browser tab or window.
->
-> Free and open source: https://github.com/GoSlowPoke168/OmniBar
+> Your app list and settings stay on your device. AI page actions require your permission. OmniBar sends app hostnames to Google for icons and checks for sign-in errors locally. Some apps may require you to sign in separately.
 
-**Category:** Productivity → Tools
+**Category:** Functionality & UI
 **Language:** English
 
 **Graphics:**
 - Store icon: comes from `icons/icon128.png` in the package (96×96 artwork with 16 px padding)
 - Screenshots (1280×800) captured in Chrome: `docs/store/screenshot-1-chat-dark.png` (Ask about page with ChatGPT), `docs/store/screenshot-2-summarize-dark.png` (Summarize page with Claude), and `docs/store/screenshot-3-settings-dark.png` (Settings).
 - Small promo tile (440×280): `docs/store/promo-440x280.png`
+- Marquee promo tile (1400×560, optional): `docs/store/marquee-1400x560.png`
 - YouTube video (optional): paste [the OmniBar demo URL](https://youtu.be/_A6NavuuatI) into the promotional video field.
 
 ## Privacy practices tab
@@ -51,12 +46,10 @@ Copy each block into the matching field of the Developer Dashboard.
   > Shows OmniBar's app launcher and the selected web app in Chrome's side panel, which is the extension's core feature.
 - **storage:**
   > Saves the user's app list, settings and app icons locally on the device so they persist between sessions.
-- **tabs:**
-  > After the user allows current page access, reads the active tab’s address and title to show which page the page actions will use. When the user clicks Summarize page or Ask about page, puts the address in the open chat app’s prompt. Copy page link reads the active tab’s address when clicked, even with current page access off. The permission also lets OmniBar detect when a separate Claude sign-in window reaches the chat page.
 - **declarativeNetRequest:**
   > Many websites send X-Frame-Options or Content-Security-Policy headers that stop them from displaying inside another page. OmniBar uses a session rule to remove those two headers from subframe requests without a browser tab ID, including requests from the side panel. This lets users open their chosen apps inside the panel. Regular tabs keep their response headers.
 - **Host permission (<all_urls>):**
-  > Users can add any website as an app, so OmniBar needs access to all sites to load them in the side panel, apply the header rule above, and run its helper content script inside them. The content script exits immediately unless the page is framed inside OmniBar's own side panel; there it only types a prompt into the app's chat box when the user clicks Summarize page or Ask about page, and checks for a few known sign-in error messages so OmniBar can show sign-in help. It does nothing in normal tabs.
+  > Users can add web apps by URL, so OmniBar needs access to sites they choose to open in the sidebar. Host access enables embedding and lets the sidebar helper insert prompts at the user’s request and check for known sign-in errors. It also gives OmniBar the active web page’s URL and title for the opt-in page actions, the URL for Copy page link when clicked, and the URL of a Claude sign-in window OmniBar opens to detect when it reaches the chat page.
 
 **Remote code:**
 > No, I am not using remote code.
