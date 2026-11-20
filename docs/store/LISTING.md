@@ -11,8 +11,8 @@ Copy each block into the matching field of the Developer Dashboard.
 
 **Name:** OmniBar (from the manifest)
 
-**Summary** (from the manifest, 95 characters):
-> A customizable sidebar that keeps your favorite web apps one click away in Chrome's side panel.
+**Summary** (from the manifest, 127 characters):
+> A customizable sidebar that keeps your web apps and AI assistants one click away, working alongside you in Chrome's side panel.
 
 **Description:**
 > Keep your favorite web apps open beside your current tab. With OmniBar, you can take notes while you research, keep a tool handy, or ask an AI assistant for help without leaving your work.
