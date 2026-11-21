@@ -2,76 +2,47 @@
 
 ![OmniBar — Your favorite web apps, right beside your work](docs/store/marquee-1400x560.png)
 
-A customizable sidebar extension for Chromium-based browsers like Google Chrome, Microsoft Edge, Brave, and Opera / Opera GX that allows you to dock your favorite web applications directly into the browser's side panel. 
+A customizable sidebar extension for Firefox and Chromium-based browsers that keeps web apps and AI assistants one click away.
 
-Originally created as a replacement for the Microsoft Edge sidebar since Microsoft removed it for no reason...
+Originally created as a replacement for the Microsoft Edge sidebar. The upstream demo shows the Chromium edition.
 
 https://github.com/user-attachments/assets/425baec1-02f0-4161-9ef3-0ae854397c3e
 
 ## Features
 
-- **App dock.** Add, edit, remove, and reorder web apps. Icons slide into place as you drag. Open apps in the sidebar, a new tab, or a separate side window.
-- **Page actions.** **Summarize page** sends a prompt with the current tab’s URL to a compatible chat app. **Ask about page** fills in the page URL so you can add your question before sending. OmniBar asks before reading the current tab and shows which page it will use.
-- **Default page and loading indicator.** Open a chosen app automatically with the sidebar. The app strip and controls are available while the page loads.
-- **Theme and layout.** Follow the browser theme or choose light or dark mode. Switch between mobile and desktop layouts per app.
-- **Keyboard shortcut.** Press `Alt+Z` to toggle the sidebar, or change the shortcut in your browser.
-- **Sign-in help.** If the embedded app asks you to sign in, OmniBar can open its sign-in page in a separate window.
-- **Local settings.** OmniBar saves your app list and preferences on your device. Export or import your app list from Settings.
+- **App dock.** Add, edit, remove, and drag to reorder apps. Right-click an app to open it in a tab or side window, or to sign in separately.
+- **Default page.** Choose an app to open automatically with the sidebar. Use the toolbar button or `Alt+Z` to return to the dock.
+- **Page actions.** Allow tab access to copy a summary prompt, question prompt, or the current page link. Paste the prompt into the app you want to use.
+- **Appearance.** Follow the system theme or choose light or dark mode.
+- **Local settings.** OmniBar saves your app list and preferences on your device. Import or export your apps from Settings.
 
-## How to Use
+## Build both browser editions
 
-- Click an icon to open it in the sidebar
-- Right-click an icon to open it elsewhere, sign in, edit, or remove it
-- Click the pencil to enter edit mode, then drag to reorder
-- Click + to add a new app and the gear for Settings
-- Use **Summarize page** or **Ask about page** at the bottom of the sidebar to send the current page to the open app
+Run `python3 build.py` (or `.\build.ps1` in PowerShell with Python installed). The archives are written to `dist/omnibar-firefox.zip` and `dist/omnibar-chromium.zip`. Pass `--browser firefox` or `--browser chromium` to the Python command to build one edition.
 
-## Compatibility
+## Install in Chromium
 
-| Browser | Support Status |
-| :--- | :--- |
-| **Google Chrome** | ![Chrome Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=googlechrome&logoColor=white) |
-| **Microsoft Edge** | ![Edge Supported](https://img.shields.io/badge/Supported-success?style=flat-square) |
-| **Brave** | ![Brave Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=brave&logoColor=white) |
-| **Opera / Opera GX** | ![Opera Supported](https://img.shields.io/badge/Supported-success?style=flat-square&logo=opera&logoColor=white) |
-| **Mozilla Firefox** | ![Firefox Planned](https://img.shields.io/badge/Planned-orange?style=flat-square&logo=firefox&logoColor=white) |
+Extract `dist/omnibar-chromium.zip`, open `chrome://extensions`, enable **Developer mode**, and click **Load unpacked**. Select the extracted directory containing `manifest.json`. Press `Alt+Z` or click OmniBar in the toolbar to open its side panel.
 
-*Note: This extension relies on the Manifest V3 `sidePanel` API. Browsers lacking support for this specific API (like Mozilla Firefox) cannot run the extension currently, though Firefox support is planned for the future.*
+## Install in Firefox
 
-## Installation
+1. Open Firefox 128 or later and go to `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on** and select the root `manifest.json` or the manifest from the extracted Firefox archive.
+3. Click OmniBar in the toolbar or press `Alt+Z` to open the dock. To change the shortcut, use **Settings → Shortcut → Change**.
 
-A Chrome Web Store listing is on the way. Until then, load OmniBar as an unpacked extension in Developer Mode.
+Firefox removes temporary add-ons when it restarts. Load the manifest again to continue testing.
 
-### General Steps
+## Browser behavior
 
-1. **Download OmniBar.** Get `omnibar.zip` from the [latest GitHub release](https://github.com/GoSlowPoke168/OmniBar/releases/latest) and extract it.
-2. Open your browser and navigate to the Extensions page (see the [Browser-Specific Links](#browser-specific-links) below).
-3. Enable **Developer mode**.
-4. Click the **Load unpacked** button.
-5. Select the extracted folder containing this extension's source code.
-6. (Optional) Configure the keyboard shortcut by navigating to the Shortcuts page.
+Chromium keeps the dock visible beside its embedded apps and supports prompt insertion, a loading indicator, and a per-app desktop viewport.
 
-### Browser-Specific Links
+### Firefox
 
-| Browser | Extensions Page | Shortcuts Page |
-| :--- | :--- | :--- |
-| **Google Chrome** | `chrome://extensions/` | `chrome://extensions/shortcuts` |
-| **Microsoft Edge** | `edge://extensions/` | `edge://extensions/shortcuts` |
-| **Brave** | `brave://extensions/` | `brave://extensions/shortcuts` |
-| **Opera / Opera GX** | `opera://extensions/` | `opera://extensions/shortcuts` |
-
-
-## Technical Notes
-
-OmniBar uses the `declarativeNetRequest` API to help external websites load in its sidebar iframe. Its session rule removes frame-blocking response headers from subframe requests without a browser tab ID, including requests from the side panel. Regular tabs keep their response headers. Some websites can still block embedded access.
-
-### Known issue with Claude
-
-Claude’s sign-in flow can fail inside the sidebar. If that happens, right-click Claude’s icon and choose **Sign in…**, or sign in to `claude.ai` in a regular browser tab. Return to OmniBar and click **Refresh** if Claude stays on the sign-in screen.
+Apps open as native sidebar pages, with OmniBar’s app icons and settings visible beside them. The pop-out button hides the dock in the same sidebar. For Claude it also switches from `/new` to `/recents`. Firefox may ask for access to a custom site before it can display the dock alongside it. Use the toolbar button or `Alt+Z` to return to the dock. If Firefox has suspended OmniBar and the first shortcut press closes the current app, press it again to reopen the dock.
 
 ## Privacy
 
-OmniBar has no servers, accounts, analytics, or ads. See the [Privacy Policy](PRIVACY.md).
+OmniBar has no servers, accounts, analytics, or ads. See the [Firefox privacy policy](PRIVACY.md) or the [Chromium privacy policy](chromium/PRIVACY.md).
 
 ## Support the Project
 If you find this plugin useful, please leave a star on GitHub or consider supporting its development!

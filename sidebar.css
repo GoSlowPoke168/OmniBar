@@ -245,18 +245,10 @@ button {
   background: var(--bg);
 }
 
-#content-panel.hidden {
-  display: flex !important;
-  visibility: hidden;
-  pointer-events: none;
-}
-
 #idle-panel {
-  position: absolute;
-  inset: 0 var(--strip-w) 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 1;
+  display: grid;
+  place-items: center;
   padding: 24px;
   text-align: center;
 }
@@ -281,235 +273,21 @@ button {
   line-height: 1.5;
 }
 
-/* ─────────────────────────────────────────────
-   Top bar
-───────────────────────────────────────────── */
-#panel-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 50px;
-  padding: 7px 6px 7px 12px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-#panel-header-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-#panel-app-name {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#panel-app-url {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-  width: fit-content;
-  background: none;
-  border: none;
-  border-radius: 4px;
-  font-size: 11.5px;
-  color: var(--text-3);
-  text-align: left;
-  transition: color var(--t-fast) var(--ease);
-}
-
-#panel-app-url:hover {
-  color: var(--text);
-}
-
-#panel-app-url.copied {
-  color: var(--success);
-}
-
-#panel-url-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#panel-header-btns {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  flex-shrink: 0;
-}
-
 .hdr-btn {
-  width: 26px;
-  height: 26px;
   display: grid;
   place-items: center;
-  border: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
   border-radius: var(--r-sm);
   background: none;
   color: var(--text-2);
-  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  cursor: pointer;
 }
 
 .hdr-btn:hover {
   background: var(--hover);
   color: var(--text);
-}
-
-.hdr-btn:active {
-  transform: scale(.94);
-}
-
-.hdr-btn.active {
-  color: var(--accent);
-}
-
-.hdr-btn.success {
-  color: var(--success);
-}
-
-.hdr-btn.danger {
-  color: var(--danger);
-}
-
-.hdr-divider {
-  width: 1px;
-  height: 16px;
-  margin: 0 3px;
-  background: var(--border);
-}
-
-#hdr-desktop .icon-desktop,
-#hdr-desktop.active .icon-mobile {
-  display: none;
-}
-
-#hdr-desktop.active .icon-desktop {
-  display: block;
-}
-
-/* ─────────────────────────────────────────────
-   App frame and its states
-───────────────────────────────────────────── */
-#frame-wrap {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-#app-frame {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: none;
-  color-scheme: light dark;
-  background: Canvas;
-}
-
-#app-frame.desktop {
-  transform-origin: 0 0;
-}
-
-#app-frame.loading {
-  visibility: hidden;
-}
-
-#load-spinner {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: var(--bg);
-  z-index: 5;
-}
-
-.spinner-ring {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 2.5px solid var(--border);
-  border-top-color: var(--accent);
-  animation: spin .75s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.state-panel {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px 18px;
-  overflow-y: auto;
-  text-align: center;
-  background: var(--bg);
-}
-
-.state-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--accent-soft);
-  color: var(--accent);
-  flex-shrink: 0;
-}
-
-.state-icon .icon {
-  width: 24px;
-  height: 24px;
-  stroke-width: 1.8;
-}
-
-.state-panel h3 {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.state-panel p,
-.state-panel ol {
-  max-width: 280px;
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-
-.state-panel ol {
-  text-align: left;
-  padding-left: 18px;
-}
-
-.state-panel b {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.state-panel .state-note {
-  font-size: 12px;
-}
-
-.state-panel a {
-  color: var(--accent);
-  font-weight: 600;
 }
 
 /* ─────────────────────────────────────────────
@@ -1114,10 +892,6 @@ kbd {
   opacity: 0;
   transform: translate(-50%, 8px);
   transition: opacity var(--t-toast) var(--ease), transform var(--t-toast) var(--ease);
-}
-
-#app:has(#content-panel.hidden)~.toast {
-  bottom: 16px;
 }
 
 .toast.show {

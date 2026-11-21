@@ -1,0 +1,10 @@
+.hdr-btn,
+.strip-btn {
+  color: var(--text);
+}
+
+.strip-btn .icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
